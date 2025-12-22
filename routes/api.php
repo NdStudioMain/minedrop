@@ -7,3 +7,4 @@ Route::middleware('api')->group(function () {
         return response()->json(['pong' => true]);
     });
 });
+
