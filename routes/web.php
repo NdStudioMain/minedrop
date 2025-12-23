@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\TelegramController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AuthController;
@@ -25,6 +26,6 @@ Route::get('partners', function () {
 
 
 Route::get('login', [AuthController::class, 'login'])->name('login');
+Route::post('/api/telegram/webhook', [TelegramController::class, 'webhook'])->name('telegram.webhook');
 
 require_once 'games.php';
-require_once 'api.php';

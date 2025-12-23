@@ -8,5 +8,5 @@ Route::middleware('api')->group(function () {
         return response()->json(['pong' => true]);
     });
 
-    Route::post('/telegram/webhook', [TelegramController::class, 'webhook'])->name('telegram.webhook');
+
 });
