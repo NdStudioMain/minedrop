@@ -262,6 +262,7 @@ onBeforeUnmount(() => {
                             alt=""
                         />
                     </Link>
+
                     <Link href="/dice"
                         class="group relative h-[144px] min-w-[110px] cursor-pointer overflow-hidden rounded-[5px] duration-300 ease-in-out"
                     >
