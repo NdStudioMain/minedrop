@@ -27,3 +27,4 @@ Route::get('partners', function () {
 Route::get('login', [AuthController::class, 'login'])->name('login');
 
 require_once 'games.php';
+require_once 'api.php';
