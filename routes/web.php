@@ -26,6 +26,8 @@ Route::get('partners', function () {
 
 
 Route::get('login', [AuthController::class, 'login'])->name('login');
-Route::post('/api/telegram/webhook', [TelegramController::class, 'webhook'])->name('telegram.webhook');
+
+Route::get('tg/auth', [AuthController::class, 'telegramAuth'])->name('tg.auth');
+Route::post('tg/auth/login', [AuthController::class, 'telegramLogin'])->name('tg.auth.login');
 
 require_once 'games.php';
