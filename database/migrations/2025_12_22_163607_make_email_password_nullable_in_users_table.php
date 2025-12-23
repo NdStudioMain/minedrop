@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->text('two_factor_secret')->after('password')->nullable();
-            $table->text('two_factor_recovery_codes')->after('two_factor_secret')->nullable();
-            $table->timestamp('two_factor_confirmed_at')->after('two_factor_recovery_codes')->nullable();
+            $table->string('email')->nullable()->change();
+            $table->string('password')->nullable()->change();
+            $table->string('name')->nullable()->change();
         });
     }
 
@@ -24,11 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn([
-                'two_factor_secret',
-                'two_factor_recovery_codes',
-                'two_factor_confirmed_at',
-            ]);
+            $table->string('email')->nullable(false)->change();
+            $table->string('password')->nullable(false)->change();
+            $table->string('name')->nullable(false)->change();
         });
     }
 };
