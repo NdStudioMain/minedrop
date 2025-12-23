@@ -21,7 +21,7 @@ class GamesSeeder extends Seeder
                 'id_game' => 'minedrop',
                 'description' => 'Minedrop is a game that allows you to mine for diamonds.',
                 'image' => 'assets/img/minedrop.png',
-                'url_slug' => 'minedrop',
+                'url_slug' => 'slots/minedrop_game',
                 'bank_id' => $bank->id,
             ],
             [

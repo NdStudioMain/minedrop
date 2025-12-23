@@ -15,7 +15,7 @@ Route::get('mines', function () {
     ]);
 })->name('mines');
 
-Route::get('minedrop', function () {
+Route::get('/slots/minedrop_game', function () {
     $game = Games::where('url_slug', 'minedrop')->first();
     return Inertia::render('slotPage', [
         'game' => $game
