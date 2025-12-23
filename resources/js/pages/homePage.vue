@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-
+import { Link } from '@inertiajs/vue3';
 import Layout from '../layouts/layout.vue';
 
 const pageRoot = ref(null);
@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
                             alt=""
                         />
                     </button>
-                    <button
+                    <Link href="/mines"
                         class="group relative h-[144px] min-w-[110px] cursor-pointer overflow-hidden rounded-[5px] duration-300 ease-in-out"
                     >
                         <div
@@ -261,8 +261,8 @@ onBeforeUnmount(() => {
                             class="absolute bottom-0 left-0 h-full w-full"
                             alt=""
                         />
-                    </button>
-                    <button
+                    </Link>
+                    <Link href="/dice"
                         class="group relative h-[144px] min-w-[110px] cursor-pointer overflow-hidden rounded-[5px] duration-300 ease-in-out"
                     >
                         <div
@@ -292,7 +292,7 @@ onBeforeUnmount(() => {
                             class="absolute bottom-0 left-0 h-full w-full"
                             alt=""
                         />
-                    </button>
+                    </Link>
                 </div>
             </div>
 

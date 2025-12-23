@@ -10,6 +10,15 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('dice', function () {
+    return Inertia::render('dicePage', [
+    ]);
+})->name('dice');
+
+Route::get('mines', function () {
+    return Inertia::render('minePage', [
+    ]);
+})->name('mines');
 Route::get('bonus', function () {
     return Inertia::render('bonusPage', [
     ]);
