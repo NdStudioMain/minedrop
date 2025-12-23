@@ -117,6 +117,8 @@ class TelegramController extends Controller
 
     private function sendWelcome(int $chatId): void
     {
+        $authUrl = config('app.url') . '/tg/auth';
+
         Http::post(
             "https://api.telegram.org/bot" . env('TELEGRAM_TOKEN') . "/sendPhoto",
             [
@@ -130,7 +132,7 @@ class TelegramController extends Controller
                             [
                                 'text' => '🎮 Играть',
                                 'web_app' => [
-                                    'url' => route('tg.auth')
+                                    'url' => $authUrl
                                 ]
                             ]
                         ]
