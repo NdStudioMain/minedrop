@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
 
 /**
  * @property int $id
@@ -60,7 +59,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  */
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'tg_id',
@@ -85,7 +84,6 @@ class User extends Authenticatable
         'balance' => 'decimal:2',
         'ref_balance' => 'decimal:2',
         'bonus_time' => 'integer',
-        'two_factor_confirmed_at' => 'datetime',
     ];
 
     /**

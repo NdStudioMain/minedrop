@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->string('image')->nullable();
             $table->string('url_slug');
-            $table->foreignId('bank_id')->constrained('banks');
+            $table->integer('bank_id');
             $table->timestamps();
         });
     }

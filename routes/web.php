@@ -3,22 +3,16 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AuthController;
+use App\Models\Games;
 
 Route::get('/', function () {
+    $games = Games::all();
     return Inertia::render('homePage', [
+        'games' => $games,
 
     ]);
 })->name('home');
 
-Route::get('dice', function () {
-    return Inertia::render('dicePage', [
-    ]);
-})->name('dice');
-
-Route::get('mines', function () {
-    return Inertia::render('minePage', [
-    ]);
-})->name('mines');
 Route::get('bonus', function () {
     return Inertia::render('bonusPage', [
     ]);
@@ -31,3 +25,5 @@ Route::get('partners', function () {
 
 
 Route::get('login', [AuthController::class, 'login'])->name('login');
+
+require_once 'games.php';
