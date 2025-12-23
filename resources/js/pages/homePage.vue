@@ -234,7 +234,7 @@ onBeforeUnmount(() => {
                             </svg>
                         </div>
                         <img
-                            :src="game.image"
+                            :src="'/storage/' + game.image"
                             class="absolute bottom-0 left-0 h-full w-full"
                             alt=""
                         />
