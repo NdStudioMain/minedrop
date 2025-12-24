@@ -52,7 +52,7 @@ onBeforeUnmount(() => {
 
 <template>
     <Layout>
-        <main ref="pageRoot" class="relative z-40 flex flex-col h-[calc(100vh-100px)] gap-4 px-2.5 pt-4">
+        <main ref="pageRoot" class="relative z-40 flex flex-col h-[calc(100vh-200px)] gap-4 px-2.5 pt-4">
             <div  class="flex flex-col gap-4 overflow-hidden rounded-2xl h-full">
                 <iframe  :src="'/slots/'+game.id_game" class="w-full  h-full"></iframe>
             </div>

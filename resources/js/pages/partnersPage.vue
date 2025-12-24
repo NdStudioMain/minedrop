@@ -74,7 +74,7 @@ const copyReferralLink = async () => {
 
 const claiming = ref(false)
 
-const claimReferralBonus = async () => {
+const claimReferralBalance = async () => {
     if (claiming.value || refBalance.value <= 0) return
 
     claiming.value = true

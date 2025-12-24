@@ -15,6 +15,7 @@ class GamesSeeder extends Seeder
     public function run(): void
     {
         $bank = Bank::first();
+        $games = Games::truncate();
         $games = [
             [
                 'id' => 1,

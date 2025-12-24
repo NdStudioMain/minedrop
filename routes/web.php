@@ -33,10 +33,29 @@ Route::get('tg/auth', [AuthController::class, 'telegramAuth'])->name('tg.auth');
 Route::post('tg/auth/login', [AuthController::class, 'telegramLogin'])->name('tg.auth.login');
 
 Route::middleware('auth')->group(function () {
-    Route::post('api/bonus/daily', [BonusController::class, 'bonusDaily'])->name('bonus.daily');
-    Route::post('api/bonus/promo', [BonusController::class, 'activatePromo'])->name('bonus.promo');
-    Route::post('api/bonus/check-subscriptions', [BonusController::class, 'checkSubscriptions'])->name('bonus.check-subscriptions');
-    Route::post('api/referral/claim', [ReferralController::class, 'claim'])->name('referral.claim');
+    Route::post('bonus/daily', [BonusController::class, 'bonusDaily'])->name('bonus.daily');
+    Route::post('activate/promo', [BonusController::class, 'activatePromo'])->name('bonus.promo');
+    Route::post('check/subscriptions', [BonusController::class, 'checkSubscriptions'])->name('bonus.check-subscriptions');
+    Route::post('referral/claim', [ReferralController::class, 'claim'])->name('referral.claim');
 });
+
+Route::get('test', function () {
+    for ($i = 0; $i < 1000; $i++) {
+        $bank = \App\Models\Bank::first();
+        $bankService = new \App\Service\BankService();
+        $rngService = new \App\Service\RngSerivce();
+        $testBet = 10000;
+        $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $testBet);
+        $randomMultiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
+
+        $testMultiplier = $randomMultiplier;
+
+
+        $clampedMultiplier = $bankService->clampMultiplier($bank, $testMultiplier, $testBet);
+        $bankService->applyBet($bank, $testBet);
+        $bankService->applyWin($bank, $testMultiplier * $testBet);
+    }
+    dd($bank);
+})->name('text');
 
 require_once 'games.php';

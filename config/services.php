@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'minedrop' => [
+        'api_url' => env('MINEDROP_API_URL'),
+        'api_key' => env('MINEDROP_API_KEY'),
+    ],
+
 ];
