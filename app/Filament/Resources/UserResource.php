@@ -31,14 +31,6 @@ class UserResource extends Resource
                                 ->maxLength(255)
                                 ->columnSpan(2),
                         ])->columns(4),
-                        Forms\Components\TextInput::make('password')
-                            ->label('Пароль')
-                            ->password()
-                            ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
-                            ->dehydrated(fn ($state) => filled($state))
-                            ->required(fn (string $context): bool => $context === 'create')
-                            ->maxLength(255)
-                            ->columnSpanFull(),
                     ])
                     ->columns(2)
                     ->collapsible(),
