@@ -31,17 +31,6 @@ class UserResource extends Resource
                                 ->maxLength(255)
                                 ->columnSpan(2),
                         ])->columns(4),
-                        Forms\Components\Group::make([
-                            Forms\Components\TextInput::make('email')
-                                ->label('Email')
-                                ->email()
-                                ->maxLength(255)
-                                ->columnSpan(2),
-                            Forms\Components\DateTimePicker::make('email_verified_at')
-                                ->label('Email подтвержден')
-                                ->displayFormat('d.m.Y H:i')
-                                ->columnSpan(2),
-                        ])->columns(4),
                         Forms\Components\TextInput::make('password')
                             ->label('Пароль')
                             ->password()
