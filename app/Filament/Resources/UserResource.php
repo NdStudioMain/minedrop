@@ -93,7 +93,7 @@ class UserResource extends Resource
                                 ->prefixIcon('heroicon-o-gift')
                                 ->columnSpan(2),
                                 Forms\Components\Select::make('referrer_id')
-                                ->relationship('referrer', 'name', fn ($query) => $query->whereNotNull('name'))
+                                ->relationship('referrer', 'username', fn ($query) => $query->whereNotNull('username'))
                                 ->searchable()
                                 ->preload()
                                 ->label('Реферер')
