@@ -16,7 +16,6 @@ class TelegramController extends Controller
         Log::info('Telegram webhook called');
 
         $update = json_decode(file_get_contents('php://input'), true);
-
         if (!isset($update['message'])) {
             return response('ok');
         }
@@ -117,7 +116,8 @@ class TelegramController extends Controller
 
     private function sendWelcome(int $chatId): void
     {
-        Http::post(
+
+        dd(Http::post(
             "https://api.telegram.org/bot" . env('TELEGRAM_TOKEN') . "/sendPhoto",
             [
                 'chat_id' => $chatId,
@@ -137,7 +137,8 @@ class TelegramController extends Controller
                     ]
                 ])
             ]
-        );
+        ));
+
     }
 
     private function welcomeText(): string
