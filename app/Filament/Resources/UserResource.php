@@ -26,11 +26,6 @@ class UserResource extends Resource
                 Forms\Components\Section::make('Основная информация')
                     ->schema([
                         Forms\Components\Group::make([
-                            Forms\Components\TextInput::make('name')
-                                ->label('Имя')
-                                ->maxLength(255)
-                                ->required()
-                                ->columnSpan(2),
                             Forms\Components\TextInput::make('username')
                                 ->label('Username')
                                 ->maxLength(255)
