@@ -92,12 +92,13 @@ class UserResource extends Resource
                                 ->unique(ignoreRecord: true)
                                 ->prefixIcon('heroicon-o-gift')
                                 ->columnSpan(2),
-                            Forms\Components\Select::make('referrer_id')
-                                ->relationship('referrer', 'name')
+                                Forms\Components\Select::make('referrer_id')
+                                ->relationship('referrer', 'name', fn ($query) => $query->whereNotNull('name'))
                                 ->searchable()
                                 ->preload()
                                 ->label('Реферер')
                                 ->prefixIcon('heroicon-o-user-group')
+                                ->getOptionLabelFromRecordUsing(fn ($record) => $record->name ?? $record->username ?? "ID: {$record->id}")
                                 ->columnSpan(2),
                         ])->columns(4),
                     ])
