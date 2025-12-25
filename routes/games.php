@@ -15,14 +15,3 @@ Route::get('mines', function () {
     ]);
 })->name('mines');
 
-Route::get('/slots/minedrop_game', function () {
-    $game = Games::where('id_game', 'minedrop')->first();
-    return Inertia::render('slotPage', [
-        'game' => $game
-    ]);
-})->name('minedrop');
-
-
-Route::get('/slots/minedrop', function () {
-    return view('minedrop');
-})->name('slots.minedrop');

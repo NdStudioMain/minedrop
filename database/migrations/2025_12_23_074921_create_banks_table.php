@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('currency')->default('USD');
-            $table->decimal('default_balance', 10, 2)->default(0);
-            $table->decimal('totalBets', 10, 2)->default(0);
-            $table->decimal('totalWins', 10, 2)->default(0);
+            $table->decimal('default_balance', 15, 2)->default(0);
+            $table->decimal('totalBets', 15, 2)->default(0);
+            $table->decimal('totalWins', 15, 2)->default(0);
             $table->decimal('rtp', 10, 2)->default(0);
             $table->decimal('houseEdge', 10, 2)->default(0.05);
             $table->decimal('maxPayoutPercent', 10, 2)->default(0.05);

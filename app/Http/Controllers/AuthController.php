@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Inertia\Inertia;
-use Inertia\Response;
 
 class AuthController extends Controller
 {
@@ -14,7 +13,6 @@ class AuthController extends Controller
         if (!$r->has('initData')) {
             return redirect('https://t.me/MineDropBot');
         }
-
         $data = $this->validateTelegramData($r->get('initData'));
 
         $tgId = $data['user']['id'];
@@ -22,37 +20,17 @@ class AuthController extends Controller
         $user = User::where('tg_id', $tgId)->first();
 
         if (!$user) {
-            abort(403, 'User not registered');
+            $user = User::create([
+                'tg_id' => $tgId,
+                'name' => $data['user']['first_name'],
+                'username' => $data['user']['username'],
+                'avatar' => $data['user']['photo_url'],
+            ]);
+            // abort(403, 'User not registered');
         }
 
         Auth::login($user, true);
         return redirect()->route('home');
-    }
-
-    public function telegramAuth(): Response
-    {
-        return Inertia::render('telegramAuth');
-    }
-
-    public function telegramLogin(Request $r): \Illuminate\Http\JsonResponse
-    {
-        if (!$r->has('initData')) {
-            return response()->json(['error' => 'initData is required'], 400);
-        }
-
-        $data = $this->validateTelegramData($r->input('initData'));
-
-        $tgId = $data['user']['id'];
-
-        $user = User::where('tg_id', $tgId)->first();
-
-        if (!$user) {
-            return response()->json(['error' => 'User not registered'], 403);
-        }
-
-        Auth::login($user, true);
-
-        return response()->json(['success' => true]);
     }
 
     private function validateTelegramData(string $initData): array
@@ -94,5 +72,11 @@ class AuthController extends Controller
         }
 
         return $data;
+    }
+
+
+
+    public function telegramAuth(Request $r) {
+        return Inertia::render('telegramAuth');
     }
 }

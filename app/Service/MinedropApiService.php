@@ -2,49 +2,104 @@
 
 namespace App\Service;
 
+use App\Models\Games;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 
 class MinedropApiService
 {
-    private $apiUrl = config('services.minedrop.api_url');
-    private $apiKey = config('services.minedrop.api_key');
+    private string $apiUrl;
+    private string $apiKey;
     private User $user;
 
     public function __construct(User $user)
     {
         $this->user = $user;
+        $this->apiUrl = config('services.minedrop.api_url');
+        $this->apiKey = config('services.minedrop.api_key');
     }
+
+
 
     public function createSession()
     {
-        $response = Http::withHeaders([
+        $response = Http::timeout(360)->withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->post($this->apiUrl . '/session/create', [
+            'Content-Type' => 'application/json',
+        ])->get($this->apiUrl . '/session/create', [
             'balance' => $this->user->balance,
-            'currency' => 'USD',
+            'currency' => 'RUB',
             'youtube_mode' => false,
         ]);
         if ($response->successful()) {
-            return $response->json()['session_id'];
+            return $response->json();
         } else {
             throw new \Exception('Failed to create session: ' . $response->body());
         }
     }
     public function playGame($request)
     {
-
-        $defaultParams = [
+        $game = Games::where('id_game', 'minedrop')->first();
+        $bank = $game->bank;
+        $bankService = new \App\Service\BankService();
+        $rngService = new \App\Service\RngSerivce();
+        $bet = $request->amount / 1000000;
+        $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $bet);
+        $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
+        $win = $multiplier * $bet;
+        $data = [
             'sessionID' => $request->sessionID,
-            'amount' => $request->amount ?? 1000000,
-            'currency' => 'RUB',
-            'mode' => $request->mode ?? 'BASE',
-
+            'amount' => $request->amount,
+            'currency' => $request->currency,
+            'mode' => $request->mode,
+            'multiplier' => $multiplier,
         ];
+        $response = Http::timeout(360)->withHeaders([
+            'x-api-key' => $this->apiKey,
+            'Content-Type' => 'application/json',
+        ])->post($this->apiUrl . '/wallet/play', $data);
+        if ($response->successful()) {
+            $bankService->applyBet($bank, $bet);
+            $bankService->applyWin($bank, $win);
+            $this->user->balance -= $bet;
+            $this->user->balance += $win;
+            $this->user->save();
+            return $response->json();
+        } else {
+            throw new \Exception('Failed to play game: ' . $response->body());
+        }
+    }
+    public function endRound($request)
+    {
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->post($this->apiUrl . '/game/play', [
-            'session_id' => $request->session_id,
-        ]);
+            'Content-Type' => 'application/json',
+        ])->post($this->apiUrl . '/wallet/end-round', $request->all());
+        if ($response->successful()) {
+            return $response->json();
+        } else {
+            return $response->body();
+        }
+    }
+    public function balance($request)
+    {
+        $response = Http::withHeaders([
+            'x-api-key' => $this->apiKey,
+            'Content-Type' => 'application/json',
+        ])->post($this->apiUrl . '/wallet/balance', $request->all());
+        return $response->json();
+    }
+
+    public function authenticate($request)
+    {
+        $response = Http::withHeaders([
+            'x-api-key' => $this->apiKey,
+            'Content-Type' => 'application/json',
+        ])->post($this->apiUrl . '/wallet/authenticate', $request->all());
+        if ($response->successful()) {
+            return $response->json();
+        } else {
+            return $response->body();
+        }
     }
 }

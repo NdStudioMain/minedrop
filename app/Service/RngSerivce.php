@@ -22,7 +22,7 @@ class RngSerivce
 
     /**
      * Генерация multiplier (например для crash / x2 / mines)
-     * Округляет до одного знака после запятой (шаг 0.1)
+     * Генерирует множители с шагом 0.1 (один знак после запятой)
      */
     public function generateMultiplier(
         float $min = 1.0,
@@ -36,6 +36,9 @@ class RngSerivce
          */
         $r = pow($this->randomFloat(), $bias);
 
-        return round($min + $r * ($max - $min), 1);
+        $value = $min + $r * ($max - $min);
+
+        // Округляем до одного знака после запятой (шаг 0.1)
+        return round($value, 1);
     }
 }

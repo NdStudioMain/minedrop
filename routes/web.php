@@ -27,10 +27,9 @@ Route::get('partners', function () {
 })->name('partners');
 
 
-Route::get('login', [AuthController::class, 'login'])->name('login');
 
 Route::get('tg/auth', [AuthController::class, 'telegramAuth'])->name('tg.auth');
-Route::post('tg/auth/login', [AuthController::class, 'telegramLogin'])->name('tg.auth.login');
+Route::post('tg/auth/login', [AuthController::class, 'login'])->name('tg.auth.login');
 
 Route::middleware('auth')->group(function () {
     Route::post('bonus/daily', [BonusController::class, 'bonusDaily'])->name('bonus.daily');
@@ -40,22 +39,64 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('test', function () {
-    for ($i = 0; $i < 1000; $i++) {
+    for ($i = 0; $i < 5; $i++) {
         $bank = \App\Models\Bank::first();
         $bankService = new \App\Service\BankService();
         $rngService = new \App\Service\RngSerivce();
-        $testBet = 10000;
-        $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $testBet);
-        $randomMultiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
+        // $bank->update([
+        //     'balance' => 500000,
+        // ]);
+        for ($i = 0; $i < 1000; $i++) {
+            $testBet = 1000;
+            $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $testBet);
+            $randomMultiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
 
-        $testMultiplier = $randomMultiplier;
+            $testMultiplier = $randomMultiplier;
 
 
-        $clampedMultiplier = $bankService->clampMultiplier($bank, $testMultiplier, $testBet);
-        $bankService->applyBet($bank, $testBet);
-        $bankService->applyWin($bank, $testMultiplier * $testBet);
+            $clampedMultiplier = $bankService->clampMultiplier($bank, $testMultiplier, $testBet);
+            $bankService->applyBet($bank, $testBet);
+            $bankService->applyWin($bank, $testMultiplier * $testBet);
+        }
+        for ($i = 0; $i < 500; $i++) {
+            $testBet = 500;
+            $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $testBet);
+            $randomMultiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
+
+            $testMultiplier = $randomMultiplier;
+
+
+            $clampedMultiplier = $bankService->clampMultiplier($bank, $testMultiplier, $testBet);
+            $bankService->applyBet($bank, $testBet);
+            $bankService->applyWin($bank, $testMultiplier * $testBet);
+        }
+        for ($i = 0; $i < 100; $i++) {
+            $testBet = 5000;
+            $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $testBet);
+            $randomMultiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
+
+            $testMultiplier = $randomMultiplier;
+
+
+            $clampedMultiplier = $bankService->clampMultiplier($bank, $testMultiplier, $testBet);
+            $bankService->applyBet($bank, $testBet);
+            $bankService->applyWin($bank, $testMultiplier * $testBet);
+        }
+        for ($i = 0; $i < 10; $i++) {
+            $testBet = 10000;
+            $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $testBet);
+            $randomMultiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
+
+            $testMultiplier = $randomMultiplier;
+
+
+            $clampedMultiplier = $bankService->clampMultiplier($bank, $testMultiplier, $testBet);
+            $bankService->applyBet($bank, $testBet);
+            $bankService->applyWin($bank, $testMultiplier * $testBet);
+        }
     }
     dd($bank);
 })->name('text');
 
 require_once 'games.php';
+require_once 'minedrop.php';
