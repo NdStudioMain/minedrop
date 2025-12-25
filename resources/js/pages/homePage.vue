@@ -126,7 +126,7 @@ onBeforeUnmount(() => {
             class="relative z-40 flex flex-col gap-4 px-2.5 pt-4"
         >
             <img
-                src="assets/img/emerald-rotate.png"
+                src="/assets/img/emerald-rotate.png"
                 class="absolute top-1/2 -right-5 z-10 h-11 -translate-y-1/2 -scale-x-100"
                 alt=""
                 data-animate-image

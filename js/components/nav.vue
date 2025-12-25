@@ -56,7 +56,7 @@ onBeforeUnmount(() => {
                 class="nav-btn"
                 :class="{ active: currentUrl === '/' }"
             >
-                <img src="assets/img/earth.png" class="h-[22px]" alt="" />
+                <img src="/assets/img/earth.png" class="h-[22px]" alt="" />
                 Главная
             </Link>
             <Link
@@ -64,7 +64,7 @@ onBeforeUnmount(() => {
                 class="nav-btn"
                 :class="{ active: currentUrl === '/bonus' }"
             >
-                <img src="assets/img/diamond.png" class="h-[22px]" alt="" />
+                <img src="/assets/img/diamond.png" class="h-[22px]" alt="" />
                 Бонусы
             </Link>
             <Link
@@ -72,12 +72,12 @@ onBeforeUnmount(() => {
                 class="nav-btn"
                 :class="{ active: currentUrl === '/partners' }"
             >
-                <img src="assets/img/emerald.png" class="h-[22px]" alt="" />
+                <img src="/assets/img/emerald.png" class="h-[22px]" alt="" />
                 Партнерам
             </Link>
         </div>
         <img
-            src="assets/img/emerald-bottom.png"
+            src="/assets/img/emerald-bottom.png"
             class="absolute -bottom-4 left-[47%] -z-10 h-11 -translate-x-1/2"
             alt=""
         />

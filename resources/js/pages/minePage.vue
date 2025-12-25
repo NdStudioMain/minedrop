@@ -61,22 +61,22 @@ onBeforeUnmount(() => {
                         class="group relative w-full cursor-pointer overflow-hidden rounded-[5px] bg-[#272727]"
                     >
                         <img
-                            src="assets/img/bg-mine.png"
+                            src="/assets/img/bg-mine.png"
                             alt="mine"
                             class="h-full w-full object-cover opacity-0 transition duration-200"
                         />
                         <img
-                            src="assets/img/tnt-mine.png"
+                            src="/assets/img/tnt-mine.png"
                             alt="mine"
                             class="absolute top-1/2 left-1/2 size-[80%] -translate-x-1/2 -translate-y-1/2 object-cover opacity-0 transition duration-200"
                         />
                         <img
-                            src="assets/img/emerald-mine.png"
+                            src="/assets/img/emerald-mine.png"
                             alt="mine"
                             class="absolute top-1/2 left-1/2 size-[80%] -translate-x-1/2 -translate-y-1/2 object-cover transition duration-200"
                         />
                         <img
-                            src="assets/img/pick.png"
+                            src="/assets/img/pick.png"
                             alt="pick"
                             class="pick-hover absolute top-1 right-1 z-20 size-[28px] translate-x-0 translate-y-0 rotate-0 object-cover opacity-0 group-hover:translate-x-[2px] group-hover:-translate-y-[2px] group-hover:rotate-10 group-hover:opacity-100"
                         />
@@ -86,22 +86,22 @@ onBeforeUnmount(() => {
                         class="group relative w-full cursor-pointer overflow-hidden rounded-[5px] bg-[#272727]"
                     >
                         <img
-                            src="assets/img/bg-mine.png"
+                            src="/assets/img/bg-mine.png"
                             alt="mine"
                             class="h-full w-full object-cover"
                         />
                         <img
-                            src="assets/img/tnt-mine.png"
+                            src="/assets/img/tnt-mine.png"
                             alt="mine"
                             class="absolute top-1/2 left-1/2 size-[30px] -translate-x-1/2 -translate-y-1/2 object-cover opacity-0 transition duration-200"
                         />
                         <img
-                            src="assets/img/emerald-mine.png"
+                            src="/assets/img/emerald-mine.png"
                             alt="mine"
                             class="absolute top-1/2 left-1/2 h-[30px] w-[24px] -translate-x-1/2 -translate-y-1/2 object-cover opacity-0 transition duration-200"
                         />
                         <img
-                            src="assets/img/pick.png"
+                            src="/assets/img/pick.png"
                             alt="pick"
                             class="pick-hover absolute top-1 right-1 z-20 size-[28px] translate-x-0 translate-y-0 rotate-0 object-cover opacity-0 group-hover:translate-x-[2px] group-hover:-translate-y-[2px] group-hover:rotate-10 group-hover:opacity-100"
                         />

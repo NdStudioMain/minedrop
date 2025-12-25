@@ -39,7 +39,7 @@ const formattedBalance = computed(() =>
 <template>
     <header class="flex w-full items-baseline justify-between p-2.5 pb-1.5">
         <img
-            src="assets/img/emerald-rotate.png"
+            src="/assets/img/emerald-rotate.png"
             class="absolute -top-1.5 -left-2 size-[25px]"
             alt=""
             data-header-animate

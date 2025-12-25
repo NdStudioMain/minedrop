@@ -118,7 +118,7 @@ onBeforeUnmount(() => {
             class="relative z-40 flex flex-col gap-4 px-2.5 pt-4"
         >
             <img
-                src="assets/img/emerald-rotate.png"
+                src="/assets/img/emerald-rotate.png"
                 class="absolute top-1/2 -right-5 z-10 h-11 -translate-y-1/2 -scale-x-100"
                 alt=""
                 data-animate-image
@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
                             </svg>
                         </div>
                         <img
-                            src="assets/img/minedrop.png"
+                            src="/assets/img/minedrop.png"
                             class="absolute bottom-0 left-0 h-full w-full"
                             alt=""
                         />
@@ -257,7 +257,7 @@ onBeforeUnmount(() => {
                             </svg>
                         </div>
                         <img
-                            src="assets/img/Mines.png"
+                            src="/assets/img/Mines.png"
                             class="absolute bottom-0 left-0 h-full w-full"
                             alt=""
                         />
@@ -288,7 +288,7 @@ onBeforeUnmount(() => {
                             </svg>
                         </div>
                         <img
-                            src="assets/img/Dice.png"
+                            src="/assets/img/Dice.png"
                             class="absolute bottom-0 left-0 h-full w-full"
                             alt=""
                         />

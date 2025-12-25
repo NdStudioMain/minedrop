@@ -101,7 +101,7 @@ const claimReferralBonus = async () => {
             class="relative z-40 flex flex-col gap-4 px-2.5 pt-4"
         >
             <img
-                src="assets/img/emerald-rotate.png"
+                src="/assets/img/emerald-rotate.png"
                 class="absolute top-1/2 -right-5 z-10 h-11 -translate-y-1/2 -scale-x-100"
                 alt=""
                 data-animate-image
@@ -128,7 +128,7 @@ const claimReferralBonus = async () => {
                     </div>
                 </div>
                 <img
-                    src="assets/img/bg-partners-card-1.png"
+                    src="/assets/img/bg-partners-card-1.png"
                     class="absolute top-0 left-0 z-10 h-full w-full object-cover"
                     alt=""
                 />
@@ -154,7 +154,7 @@ const claimReferralBonus = async () => {
                         @click="claimReferralBalance"
                     >
                         <img
-                            src="assets/img/gold.png"
+                            src="/assets/img/gold.png"
                             class="absolute -top-6 left-0 h-[40px]"
                             alt=""
                             data-animate-image
@@ -163,13 +163,13 @@ const claimReferralBonus = async () => {
                     </button>
                 </div>
                 <img
-                    src="assets/img/gold.png"
+                    src="/assets/img/gold.png"
                     class="absolute top-0 right-3 h-[30px] -scale-x-100"
                     alt=""
                     data-animate-image
                 />
                 <img
-                    src="assets/img/gold-element.png"
+                    src="/assets/img/gold-element.png"
                     class="absolute right-0 bottom-0 h-[160px]"
                     alt=""
                     data-animate-image
