@@ -28,7 +28,10 @@ class AuthController extends Controller
             ]);
             // abort(403, 'User not registered');
         }
-
+        if($user->avatar == null) {
+            $user->avatar = $data['user']['photo_url'];
+            $user->save();
+        }
         Auth::login($user, true);
         return redirect()->route('home');
     }
