@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\GameController;
 use App\Models\Games;
 
 Route::get('dice', function () {
@@ -14,4 +15,12 @@ Route::get('mines', function () {
     return Inertia::render('minePage', [
     ]);
 })->name('mines');
+
+Route::middleware('auth')->group(function () {
+    Route::post('dice/play', [GameController::class, 'dicePlay'])->name('dice.play');
+    Route::post('mines/start', [GameController::class, 'minesStart'])->name('mines.start');
+    Route::post('mines/pick', [GameController::class, 'minesPick'])->name('mines.pick');
+    Route::post('mines/cashout', [GameController::class, 'minesCashout'])->name('mines.cashout');
+    Route::post('mines/multipliers', [GameController::class, 'minesMultipliers'])->name('mines.multipliers');
+});
 
