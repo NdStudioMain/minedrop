@@ -7,24 +7,26 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BonusController;
 use App\Http\Controllers\ReferralController;
 use App\Models\Games;
+Route::middleware('auth')->group(function () {
 
-Route::get('/', function () {
-    $games = Games::all();
-    return Inertia::render('homePage', [
-        'games' => $games,
+    Route::get('/', function () {
+        $games = Games::all();
+        return Inertia::render('homePage', [
+            'games' => $games,
 
-    ]);
-})->name('home');
+        ]);
+    })->name('home');
 
-Route::get('bonus', function () {
-    return Inertia::render('bonusPage', [
-    ]);
-})->name('bonus');
+    Route::get('bonus', function () {
+        return Inertia::render('bonusPage', [
+        ]);
+    })->name('bonus');
 
-Route::get('partners', function () {
-    return Inertia::render('partnersPage', [
-    ]);
-})->name('partners');
+    Route::get('partners', function () {
+        return Inertia::render('partnersPage', [
+        ]);
+    })->name('partners');
+});
 
 
 
