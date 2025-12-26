@@ -1,6 +1,6 @@
 <script setup>
 import gsap from 'gsap';
-import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
+import { onBeforeUnmount, onMounted, ref, computed, watch } from 'vue';
 import Layout from '../layouts/layout.vue';
 import axios from 'axios';
 import { useAuthUser } from '@/composables/useAuthUser';
@@ -20,6 +20,23 @@ const isRolling = ref(false);
 const multiplier = computed(() => {
     return (95 / chance.value).toFixed(2);
 });
+
+const isDragging = ref(false);
+const isTypeChanging = ref(false);
+
+// Отслеживаем изменение type и временно отключаем transition
+watch(type, () => {
+    isTypeChanging.value = true;
+    setTimeout(() => {
+        isTypeChanging.value = false;
+    }, 50); // Небольшая задержка чтобы transition успел отключиться
+});
+
+const greenStyle = computed(() => ({
+    left: type.value === 'over' ? `${100 - chance.value}%` : '0%',
+    width: `${chance.value}%`,
+    transition: (isDragging.value || isTypeChanging.value) ? 'none' : 'all 0.3s ease',
+}));
 
 const rollDice = async () => {
     if (isRolling.value) return;
@@ -82,16 +99,46 @@ onBeforeUnmount(() => {
                     <div class="flex flex-col" data-animate>
                         <div class="rounded-[15px] bg-[#212121] px-1 py-1.5">
                             <div class="rounded-[15px] bg-[#161616] px-1 py-2.5">
-                                <div class="relative h-[9px] w-full rounded-[19px] bg-[#EF513C]">
+                                <div class="relative h-[9px] w-full rounded-[19px] bg-[#EF513C] overflow-visible">
+                                    <!-- Настоящий range ПЕРВЫМ, чтобы он был под всем и работал на всей ширине -->
+                                    <input
+                                        ref="rangeInput"
+                                        type="range"
+                                        :value="type === 'over' ? 100 - chance : chance"
+                                        @input="chance = type === 'over' ? 100 - Number($event.target.value) : Number($event.target.value)"
+                                        min="1"
+                                        max="99"
+                                        step="1"
+                                        class="absolute left-0 right-0 top-0 bottom-0 z-50 h-full w-full cursor-pointer"
+                                        style="opacity: 0; -webkit-appearance: none; appearance: none; background: transparent; pointer-events: auto; margin: 0; padding: 0;"
+                                        @mousedown="isDragging = true"
+                                        @mouseup="isDragging = false"
+                                        @touchstart="isDragging = true"
+                                        @touchend="isDragging = false"
+                                    />
+
                                     <div
-                                        class="absolute top-0 h-full rounded-[19px] bg-[#7AC73F] transition-all duration-300"
-                                        :style="{
-                                            left: type === 'over' ? (100 - chance) + '%' : '0%',
-                                            width: chance + '%'
-                                        }"
+                                        class="pointer-events-none absolute top-0 h-full rounded-[19px] bg-[#7AC73F]"
+                                        :style="greenStyle"
                                     >
+                                        <!-- декоративный индикатор как в макете -->
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="30"
+                                            height="25"
+                                            class="absolute -top-2 pointer-events-none"
+                                            :class="type === 'over' ? '-left-4' : '-right-4'"
+                                            viewBox="0 0 30 25"
+                                            fill="none"
+                                        >
+                                            <rect width="30" height="25" rx="5" fill="#FDF1F3" />
+                                            <path d="M8.88885 19.4445L8.88885 5.55557" stroke="#D5D5D5" stroke-width="2" stroke-linecap="round" />
+                                            <path d="M15.5556 19.4445L15.5556 5.55557" stroke="#D5D5D5" stroke-width="2" stroke-linecap="round" />
+                                            <path d="M22.2222 19.4445L22.2222 5.55557" stroke="#D5D5D5" stroke-width="2" stroke-linecap="round" />
+                                        </svg>
+
                                         <div v-if="result"
-                                            class="absolute -top-8 -translate-x-1/2 transition-all duration-500"
+                                            class="absolute -top-8 -translate-x-1/2 transition-all duration-500 pointer-events-none"
                                             :style="{ left: result.roll + '%' }"
                                         >
                                             <div class="bg-white text-black px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
@@ -103,13 +150,6 @@ onBeforeUnmount(() => {
                             </div>
                         </div>
                         <div class="relative mt-4 flex flex-col gap-[2px] px-2">
-                            <input
-                                type="range"
-                                v-model.number="chance"
-                                min="1"
-                                max="95"
-                                class="w-full accent-blue-500"
-                            />
                             <div class="flex justify-between text-center text-[12px] text-white mt-2">
                                 <span>0</span>
                                 <span>25</span>
@@ -197,25 +237,4 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-input[type=range] {
-  -webkit-appearance: none;
-  background: transparent;
-}
-input[type=range]::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 8px;
-  cursor: pointer;
-  background: #272727;
-  border-radius: 4px;
-}
-input[type=range]::-webkit-slider-thumb {
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  background: #ffffff;
-  cursor: pointer;
-  -webkit-appearance: none;
-  margin-top: -6px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-}
 </style>

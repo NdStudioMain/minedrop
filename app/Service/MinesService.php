@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Models\Games;
 use App\Models\User;
 use App\Models\Bank;
-use Illuminate\Support\Facades\Session;
+use App\Models\MinesGame;
 
 class MinesService
 {
@@ -20,21 +20,15 @@ class MinesService
             throw new \Exception('Insufficient balance');
         }
 
+        // Delete any existing active game for this user
+        MinesGame::where('user_id', $user->id)
+            ->where('status', 'playing')
+            ->delete();
+
         // Generate mines
         $cells = range(0, 24);
         shuffle($cells);
         $mines = array_slice($cells, 0, $mineCount);
-
-        $state = [
-            'bet' => $bet,
-            'mineCount' => $mineCount,
-            'mines' => $mines,
-            'revealed' => [],
-            'status' => 'playing',
-            'step' => 0,
-        ];
-
-        Session::put('mines_game', $state);
 
         // Deduct bet immediately
         $user->decrement('balance', $bet);
@@ -42,6 +36,17 @@ class MinesService
         $game = Games::where('id_game', 'mines')->first();
         $bank = $game ? $game->bank : Bank::first();
         $this->bankService->applyBet($bank, $bet);
+
+        // Create game record in database
+        $minesGame = MinesGame::create([
+            'user_id' => $user->id,
+            'bet' => $bet,
+            'mine_count' => $mineCount,
+            'mines' => $mines,
+            'revealed' => [],
+            'step' => 0,
+            'status' => 'playing',
+        ]);
 
         return [
             'status' => 'playing',
@@ -55,81 +60,93 @@ class MinesService
 
     public function pick(User $user, int $cellId)
     {
-        $state = Session::get('mines_game');
-        if (!$state || $state['status'] !== 'playing') {
+        $minesGame = MinesGame::where('user_id', $user->id)
+            ->where('status', 'playing')
+            ->first();
+
+        if (!$minesGame) {
             throw new \Exception('No active game');
         }
 
-        if (in_array($cellId, $state['revealed'])) {
+        if (in_array($cellId, $minesGame->revealed ?? [])) {
             throw new \Exception('Cell already revealed');
         }
 
-        if (in_array($cellId, $state['mines'])) {
+        if (in_array($cellId, $minesGame->mines)) {
             // Hit a mine!
-            $state['status'] = 'lost';
-            $state['revealed'][] = $cellId;
-            Session::forget('mines_game');
+            $minesGame->update([
+                'status' => 'lost',
+                'revealed' => array_merge($minesGame->revealed ?? [], [$cellId]),
+            ]);
 
             return [
                 'status' => 'lost',
-                'mines' => $state['mines'],
+                'mines' => $minesGame->mines,
                 'cellId' => $cellId,
                 'newBalance' => round($user->fresh()->balance, 2),
             ];
         }
 
-        $state['revealed'][] = $cellId;
-        $state['step']++;
+        $revealed = $minesGame->revealed ?? [];
+        $revealed[] = $cellId;
+        $step = $minesGame->step + 1;
 
-        $multiplier = $this->calculateMultiplier($state['mineCount'], $state['step']);
+        $multiplier = $this->calculateMultiplier($minesGame->mine_count, $step);
 
         // Check bank limit
         $game = Games::where('id_game', 'mines')->first();
         $bank = $game ? $game->bank : Bank::first();
-        $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, $state['bet']);
+        $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, (float) $minesGame->bet);
 
         if ($multiplier > $maxMultiplier) {
             $multiplier = $maxMultiplier;
         }
 
-        Session::put('mines_game', $state);
+        $minesGame->update([
+            'revealed' => $revealed,
+            'step' => $step,
+        ]);
 
         return [
             'status' => 'playing',
-            'revealed' => $state['revealed'],
-            'step' => $state['step'],
+            'revealed' => $revealed,
+            'step' => $step,
             'multiplier' => round($multiplier, 2),
-            'nextMultiplier' => $this->calculateMultiplier($state['mineCount'], $state['step'] + 1),
-            'multipliers' => $this->getAllMultipliers($bank, $state['bet'], $state['mineCount']),
+            'nextMultiplier' => $this->calculateMultiplier($minesGame->mine_count, $step + 1),
+            'multipliers' => $this->getAllMultipliers($bank, (float) $minesGame->bet, $minesGame->mine_count),
         ];
     }
 
     public function cashout(User $user)
     {
-        $state = Session::get('mines_game');
-        if (!$state || $state['status'] !== 'playing' || $state['step'] === 0) {
+        $minesGame = MinesGame::where('user_id', $user->id)
+            ->where('status', 'playing')
+            ->first();
+
+        if (!$minesGame || $minesGame->step === 0) {
             throw new \Exception('Cannot cashout');
         }
 
-        $multiplier = $this->calculateMultiplier($state['mineCount'], $state['step']);
+        $multiplier = $this->calculateMultiplier($minesGame->mine_count, $minesGame->step);
 
         $game = Games::where('id_game', 'mines')->first();
         $bank = $game ? $game->bank : Bank::first();
-        $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, $state['bet']);
+        $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, (float) $minesGame->bet);
         $multiplier = min($multiplier, $maxMultiplier);
 
-        $winAmount = $state['bet'] * $multiplier;
+        $winAmount = $minesGame->bet * $multiplier;
 
         $this->bankService->applyWin($bank, $winAmount);
         $user->increment('balance', $winAmount);
 
-        Session::forget('mines_game');
+        $mines = $minesGame->mines;
+        $minesGame->update(['status' => 'won']);
 
         return [
             'status' => 'won',
             'winAmount' => round($winAmount, 2),
             'multiplier' => round($multiplier, 2),
-            'mines' => $state['mines'],
+            'mines' => $mines,
             'newBalance' => round($user->fresh()->balance, 2),
         ];
     }
