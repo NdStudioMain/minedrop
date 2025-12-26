@@ -40,7 +40,7 @@ return [
         'api_key' => env('MINEDROP_API_KEY'),
     ],
     'telegram' => [
-        'token' => env('TELEGRAM_BOT_TOKEN'),
+        'token' => env('TELEGRAM_TOKEN'),  // Changed from TELEGRAM_BOT_TOKEN
     ],
 
 ];
