@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
 
 
 
+Route::get('login', [AuthController::class, 'loginRedirect'])->name('login');
 Route::get('tg/auth', [AuthController::class, 'telegramAuth'])->name('tg.auth');
 Route::post('tg/auth/login', [AuthController::class, 'login'])->name('tg.auth.login');
 

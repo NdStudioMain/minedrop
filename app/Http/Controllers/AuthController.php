@@ -35,6 +35,9 @@ class AuthController extends Controller
         Auth::login($user, true);
         return redirect()->route('home');
     }
+    public function loginRedirect() {
+        return redirect()->route('tg.auth');
+    }
 
     private function validateTelegramData(string $initData): array
     {
