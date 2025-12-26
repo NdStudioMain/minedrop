@@ -4,7 +4,7 @@ import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
 import Layout from '../layouts/layout.vue';
 import axios from 'axios';
 import { useAuthUser } from '@/composables/useAuthUser';
-import { dicePlay } from '@/actions/App/Http/Controllers/GameController';
+import { dicePlay } from '@/actions/App/Http/Controllers/GameController.ts';
 
 const { user } = useAuthUser();
 
