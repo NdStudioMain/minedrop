@@ -116,7 +116,6 @@ class TelegramController extends Controller
 
     private function sendWelcome(int $chatId): void
     {
-        dd(config('services.telegram.token'));
         $response = Http::post(
             "https://api.telegram.org/bot" . config('services.telegram.token') . "/sendPhoto",
             [
