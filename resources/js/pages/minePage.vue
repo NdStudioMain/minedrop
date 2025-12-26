@@ -130,7 +130,7 @@ onBeforeUnmount(() => {
     <Layout>
         <main
             ref="pageRoot"
-            class="relative z-40 flex flex-col gap-4 px-2.5 pt-4"
+            class="relative z-40 flex flex-col gap-4 pb-25 px-2.5 pt-4"
         >
             <div class="flex flex-col gap-2.5" data-animate>
                 <div class="flex items-center justify-between" data-animate>
@@ -143,13 +143,13 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
                 <div
-                    class="grid grid-cols-5 gap-2.5 rounded-[10px] bg-[url(/assets/img/bg-mines.png)] bg-cover bg-center p-2.5"
+                    class="grid grid-cols-5 gap-2.5 rounded-[10px]  bg-[url(/assets/img/bg-mines.png)] bg-cover bg-center p-2.5"
                     data-animate
                 >
                     <template v-for="i in 25" :key="i">
                         <button
                             @click="pickCell(i-1)"
-                            class="group relative aspect-square w-full cursor-pointer overflow-hidden rounded-[5px] bg-[#272727]"
+                            class="group relative block_mine aspect-square w-full cursor-pointer overflow-hidden rounded-[5px] bg-[#272727]"
                             :disabled="gameStatus !== 'playing' || revealedCells.includes(i-1)"
                         >
                             <img
@@ -288,6 +288,7 @@ onBeforeUnmount(() => {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
 
 .pick-hover {
     animation: pick-hover 0.6s ease-in-out infinite;
