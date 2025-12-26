@@ -17,7 +17,7 @@ return new class extends Migration
             $table->decimal('bet', 15, 2);
             $table->integer('mine_count');
             $table->json('mines'); // массив ID мин
-            $table->json('revealed')->default('[]'); // массив открытых ячеек
+            $table->json('revealed')->nullable(); // массив открытых ячеек
             $table->integer('step')->default(0);
             $table->string('status')->default('playing'); // playing, won, lost
             $table->timestamps();
