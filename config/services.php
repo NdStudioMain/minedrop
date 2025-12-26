@@ -39,5 +39,8 @@ return [
         'api_url' => env('MINEDROP_API_URL'),
         'api_key' => env('MINEDROP_API_KEY'),
     ],
+    'telegram' => [
+        'token' => env('TELEGRAM_BOT_TOKEN'),
+    ],
 
 ];
