@@ -116,17 +116,14 @@ class TelegramController extends Controller
 
     private function sendWelcome(int $chatId): void
     {
-
-        dd(Http::headers([
-            'Content-Type' => 'application/json'
-        ])->post(
-            "https://api.telegram.org/bot" . env('TELEGRAM_TOKEN') . "/sendPhoto",
+        $response = Http::post(
+            "https://api.telegram.org/bot" . config('services.telegram.token') . "/sendPhoto",
             [
                 'chat_id' => $chatId,
                 'photo' => 'https://ilove-youman.com/assets/img/start.jpg',
                 'caption' => $this->welcomeText(),
                 'parse_mode' => 'HTML',
-                'reply_markup' => json_encode([
+                'reply_markup' => [
                     'inline_keyboard' => [
                         [
                             [
@@ -137,10 +134,17 @@ class TelegramController extends Controller
                             ]
                         ]
                     ]
-                ])
+                ]
             ]
-        ));
+        );
 
+        // Optional: Log if the request failed
+        if ($response->failed()) {
+            Log::error('Failed to send Telegram welcome message', [
+                'chat_id' => $chatId,
+                'response' => $response->json()
+            ]);
+        }
     }
 
     private function welcomeText(): string
