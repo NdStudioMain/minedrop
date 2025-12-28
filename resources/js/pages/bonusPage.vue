@@ -62,7 +62,7 @@ const claimDailyBonus = async () => {
             preserveScroll: true,
         })
     } catch (e) {
-        alert(e.response?.data?.message ?? 'Ошибка получения бонуса')
+        toast.error(e.response?.data?.message ?? 'Ошибка получения бонуса')
     } finally {
         claimingDaily.value = false
     }
@@ -103,7 +103,7 @@ const activatePromo = async () => {
             preserveScroll: true,
         })
     } catch (e) {
-        alert(e.response?.data?.message ?? 'Ошибка при активации промокода')
+        toast.error(e.response?.data?.message ?? 'Ошибка при активации промокода')
     } finally {
         activating.value = false
     }

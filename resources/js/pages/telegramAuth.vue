@@ -11,7 +11,7 @@ onMounted(() => {
     const initData = window.Telegram.WebApp.initData
 
     if (!initData) {
-        alert('Telegram initData не найден')
+        toast.error('Telegram initData не найден')
         return
     }
 
@@ -21,7 +21,7 @@ onMounted(() => {
         window.location.href = '/'
     }).catch((e) => {
         console.error(e)
-        alert('Ошибка авторизации')
+        toast.error('Ошибка авторизации')
     })
 })
 </script>

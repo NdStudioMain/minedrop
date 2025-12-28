@@ -17,7 +17,7 @@ class GameController extends Controller
     {
         $request->validate([
             'bet' => 'required|numeric|min:1',
-            'chance' => 'required|numeric|min:1|max:95',
+            'chance' => 'required|numeric|min:1|max:99',
             'type' => 'required|string|in:over,under',
         ]);
 

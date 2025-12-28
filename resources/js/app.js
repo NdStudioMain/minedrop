@@ -7,6 +7,7 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createVfm } from 'vue-final-modal';
 import { createApp, h } from 'vue';
+import { toast } from './lib/toast';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -19,6 +20,9 @@ createInertiaApp({
 
         app.use(plugin);
         app.use(createVfm());
+
+        // Make toast globally available
+        app.config.globalProperties.$toast = toast;
 
         app.mount(el);
     },

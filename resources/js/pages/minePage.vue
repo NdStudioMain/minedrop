@@ -57,7 +57,7 @@ const startGame = async () => {
         user.value.balance = response.data.newBalance;
     } catch (error) {
         console.error('Failed to start game:', error);
-        alert(error.response?.data?.error || 'Failed to start game');
+        toast.error(error.response?.data?.error || 'Failed to start game');
     }
 };
 

@@ -87,7 +87,7 @@ const claimReferralBalance = async () => {
             preserveScroll: true,
         })
     } catch (e) {
-        alert(e.response?.data?.message ?? 'Ошибка при зачислении')
+        toast.error(e.response?.data?.message ?? 'Ошибка при зачислении')
     } finally {
         claiming.value = false
     }

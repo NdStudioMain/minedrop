@@ -18,7 +18,7 @@ const result = ref(null);
 const isRolling = ref(false);
 
 const multiplier = computed(() => {
-    return (95 / chance.value).toFixed(2);
+    return (99 / chance.value).toFixed(2);
 });
 
 const isDragging = ref(false);
@@ -58,7 +58,7 @@ const rollDice = async () => {
         }, 500);
     } catch (error) {
         console.error('Dice play failed:', error);
-        alert(error.response?.data?.error || 'Play failed');
+        toast.error(error.response?.data?.error || 'Play failed');
         isRolling.value = false;
     }
 };
@@ -137,7 +137,9 @@ onBeforeUnmount(() => {
                                             <path d="M22.2222 19.4445L22.2222 5.55557" stroke="#D5D5D5" stroke-width="2" stroke-linecap="round" />
                                         </svg>
 
-                                        <div v-if="result"
+
+                                    </div>
+                                    <div v-if="result"
                                             class="absolute -top-8 -translate-x-1/2 transition-all duration-500 pointer-events-none"
                                             :style="{ left: result.roll + '%' }"
                                         >
@@ -145,7 +147,6 @@ onBeforeUnmount(() => {
                                                 {{ result.roll }}
                                             </div>
                                         </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
