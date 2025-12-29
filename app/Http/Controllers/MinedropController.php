@@ -24,6 +24,7 @@ class MinedropController extends Controller
 
         $result['updated_balance'] = $user->fresh()->balance;
 
+
         return $result;
     }
 

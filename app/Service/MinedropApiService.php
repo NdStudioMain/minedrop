@@ -27,10 +27,10 @@ class MinedropApiService
             'x-api-key' => $this->apiKey,
             'Content-Type' => 'application/json',
         ])->get($this->apiUrl . '/session/create', [
-            'balance' => $this->user->balance,
-            'currency' => 'RUB',
-            'youtube_mode' => false,
-        ]);
+                    'balance' => $this->user->balance,
+                    'currency' => 'RUB',
+                    'youtube_mode' => false,
+                ]);
         if ($response->successful()) {
             return $response->json();
         } else {
@@ -44,9 +44,16 @@ class MinedropApiService
         $bankService = new \App\Service\BankService();
         $rngService = new \App\Service\RngSerivce();
         $bet = $request->amount / 1000000;
+        $type = $request->type;
+
         $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $bet);
-        $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
+        if ($type == 'BONUS') {
+            $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 2);
+        } else {
+            $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
+        }
         $win = $multiplier * $bet;
+
         $data = [
             'sessionID' => $request->sessionID,
             'amount' => $request->amount,
