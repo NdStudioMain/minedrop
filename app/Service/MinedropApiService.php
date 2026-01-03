@@ -44,14 +44,16 @@ class MinedropApiService
         $bankService = new \App\Service\BankService();
         $rngService = new \App\Service\RngSerivce();
         $bet = $request->amount / 1000000;
-        $type = $request->type;
+        $mode = $request->mode;
 
         $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $bet);
-        if ($type == 'BONUS') {
-            $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 2);
+
+        if ($mode == 'BONUS') {
+            $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 3);
         } else {
             $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
         }
+
         $win = $multiplier * $bet;
 
         $data = [

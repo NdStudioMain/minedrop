@@ -91,14 +91,14 @@ const onScreenLeave = (el, done) => {
                     >
                         Пополнить
                     </button>
-                    <button
+                    <!-- <button
                         class="btn-select w-full rounded-full py-2.5 text-[10px]"
                         :class="{ active: activeScreen === 'withdraw' }"
                         type="button"
                         @click="setScreen('withdraw')"
                     >
                         Вывод
-                    </button>
+                    </button> -->
                     <button
                         class="btn-select w-full rounded-full py-2.5 text-[10px]"
                         :class="{ active: activeScreen === 'transactions' }"
