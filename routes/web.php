@@ -47,7 +47,7 @@ Route::get('test', function () {
         $bankService = new \App\Service\BankService();
         $rngService = new \App\Service\RngSerivce();
         // $bank->update([
-        //     'balance' => 500000,
+        //     'balance' => 100000000,
         // ]);
         for ($i = 0; $i < 1000; $i++) {
             $testBet = 1000;
