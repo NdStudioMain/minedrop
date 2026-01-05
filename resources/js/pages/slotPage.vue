@@ -35,7 +35,18 @@
         });
     };
 
+    // Обработчик нажатия кнопки "назад" в Telegram WebApp
+    const handleBackButton = () => {
+        router.visit('/');
+    };
+
     onMounted(() => {
+        // Показываем кнопку "назад" в Telegram WebApp
+        if (window.Telegram?.WebApp?.BackButton) {
+            window.Telegram.WebApp.BackButton.show();
+            window.Telegram.WebApp.BackButton.onClick(handleBackButton);
+        }
+
         // Обновляем баланс каждую секунду
         balanceUpdateInterval = setInterval(() => {
             updateBalance();
@@ -71,6 +82,12 @@
     });
 
     onBeforeUnmount(() => {
+        // Скрываем кнопку "назад" и убираем обработчик
+        if (window.Telegram?.WebApp?.BackButton) {
+            window.Telegram.WebApp.BackButton.offClick(handleBackButton);
+            window.Telegram.WebApp.BackButton.hide();
+        }
+
         // Очищаем интервал
         if (balanceUpdateInterval) {
             clearInterval(balanceUpdateInterval);
@@ -83,11 +100,11 @@
     </script>
 
     <template>
-            <main ref="pageRoot" class="relative z-40 flex flex-col h-screen">
-                    <iframe
-                        ref="iframeRef"
-                        :src="iframeSrc"
-                        class="w-full h-screen"
-                    ></iframe>
-            </main>
+        <main ref="pageRoot" class="relative z-40 flex flex-col h-screen">
+            <iframe
+                ref="iframeRef"
+                :src="iframeSrc"
+                class="w-full h-screen"
+            ></iframe>
+        </main>
     </template>
