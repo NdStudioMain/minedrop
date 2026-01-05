@@ -79,6 +79,7 @@ class User extends Authenticatable
 
     protected $table = 'users';
 
+
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
@@ -95,6 +96,10 @@ class User extends Authenticatable
         return $this->belongsTo(User::class, 'referrer_id');
     }
 
+    public function bank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class, 'bank_id');
+    }
     /**
      * Получить всех рефералов пользователя
      */

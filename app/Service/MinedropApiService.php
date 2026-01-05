@@ -39,8 +39,7 @@ class MinedropApiService
     }
     public function playGame($request)
     {
-        $game = Games::where('id_game', 'minedrop')->first();
-        $bank = $game->bank;
+        $bank = $this->user->bank;
         $bankService = new \App\Service\BankService();
         $rngService = new \App\Service\RngSerivce();
         $bet = $request->amount / 1000000;
