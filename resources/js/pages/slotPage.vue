@@ -83,15 +83,11 @@
     </script>
 
     <template>
-        <Layout>
-            <main ref="pageRoot" class="relative z-40 flex flex-col h-[calc(100vh-200px)] gap-4 px-2.5 pt-4">
-                <div class="flex flex-col gap-4 overflow-hidden rounded-2xl h-full">
+            <main ref="pageRoot" class="relative z-40 flex flex-col h-screen">
                     <iframe
                         ref="iframeRef"
                         :src="iframeSrc"
-                        class="w-full h-full"
+                        class="w-full h-screen"
                     ></iframe>
-                </div>
             </main>
-        </Layout>
     </template>
