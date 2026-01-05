@@ -7,6 +7,7 @@ use App\Filament\Resources\BankResource\RelationManagers;
 use App\Models\Bank;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -48,6 +49,11 @@ class BankResource extends Resource
                                 ->default('USD')
                                 ->required()
                                 ->prefixIcon('heroicon-o-currency-dollar')
+                                ->columnSpan(2),
+                                Toggle::make('is_default')
+                                ->label('По умолчанию')
+                                ->default(false)
+                                ->required()
                                 ->columnSpan(2),
                         ])->columns(4),
                         Forms\Components\TextInput::make('default_balance')

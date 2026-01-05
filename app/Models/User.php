@@ -73,6 +73,7 @@ class User extends Authenticatable
         'referrer_id',
         'balance',
         'ref_balance',
+        'bank_id',
         'bonus_time',
     ];
 

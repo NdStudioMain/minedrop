@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\Bank;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -29,6 +30,15 @@ class UserResource extends Resource
                             Forms\Components\TextInput::make('username')
                                 ->label('Username')
                                 ->maxLength(255)
+                                ->columnSpan(2),
+                            Forms\Components\Select::make('bank_id')
+                                ->options(Bank::all()->pluck('name', 'id'))
+                                ->label('Банк')
+                                ->native(false)
+                                ->required()
+                                ->searchable()
+                                ->preload()
+                                ->prefixIcon('heroicon-o-banknotes')
                                 ->columnSpan(2),
                         ])->columns(4),
                     ])

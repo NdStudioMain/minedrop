@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bank;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -25,6 +26,7 @@ class AuthController extends Controller
                 'name' => $data['user']['first_name'],
                 'username' => $data['user']['username'],
                 'avatar' => $data['user']['photo_url'],
+                'bank_id' => Bank::where('is_default', true)->first()->id,
             ]);
             // abort(403, 'User not registered');
         }

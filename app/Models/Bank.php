@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Bank extends Model
 {
-    protected $fillable = ['name', 'currency', 'default_balance', 'totalBets', 'totalWins', 'rtp', 'houseEdge', 'maxPayoutPercent'];
+    protected $fillable = ['name', 'currency', 'default_balance', 'totalBets', 'totalWins', 'rtp', 'houseEdge', 'maxPayoutPercent', 'is_default'];
 
     protected $casts = [
         'default_balance' => 'decimal:2',
