@@ -97,9 +97,15 @@ const submitDeposit = async () => {
 
         if (response.data.success) {
             const paymentUrl = response.data.data.payment_url;
+            console.log('Payment URL:', paymentUrl);
 
-            // Открываем оплату в новой вкладке
-            window.open(paymentUrl, '_blank');
+            if (!paymentUrl) {
+                errorMessage.value = 'Ссылка на оплату не получена';
+                return;
+            }
+
+            // Редирект на страницу оплаты
+            window.location.href = paymentUrl;
 
             // Очищаем форму
             amount.value = '';
