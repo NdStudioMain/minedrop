@@ -123,8 +123,21 @@ const submitDeposit = async () => {
 
 // Открыть ссылку на оплату
 const openPaymentLink = () => {
-    if (paymentUrl.value) {
-        window.location.href = paymentUrl.value;
+    if (!paymentUrl.value) return;
+
+    const url = paymentUrl.value;
+    const isTelegramLink = url.includes('t.me/');
+    const tg = window.Telegram?.WebApp;
+
+    if (tg && isTelegramLink) {
+
+        tg.openTelegramLink(url);
+    } else if (tg) {
+        // Для других ссылок используем openLink
+        tg.openLink(url);
+    } else {
+        // Фоллбэк для браузера
+        window.open(url, '_blank');
     }
 };
 
@@ -363,22 +376,19 @@ onMounted(() => {
             <div v-if="paymentUrl" class="flex flex-col gap-2.5">
                 <div class="rounded-lg bg-[#6CA243]/20 p-3 text-center">
                     <p class="text-xs text-[#6CA243] mb-2">Счёт успешно создан!</p>
-                    <p class="text-[10px] text-white/70">Нажмите кнопку ниже для перехода к оплате</p>
+                    <p class="text-[10px] text-white/70">Нажмите кнопку ниже для перехода к оплате в CryptoBot</p>
                 </div>
 
-                <a
-                    :href="paymentUrl"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <button
                     class="main-btn flex items-center justify-center gap-2 w-full rounded-[10px] py-2.5 text-[10px] text-white"
+                    @click="openPaymentLink"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                        <polyline points="15 3 21 3 21 9" />
-                        <line x1="10" y1="14" x2="21" y2="3" />
+                        <path d="M22 2L11 13" />
+                        <path d="M22 2L15 22L11 13L2 9L22 2Z" />
                     </svg>
-                    Перейти к оплате
-                </a>
+                    Открыть CryptoBot
+                </button>
 
                 <button
                     class="w-full rounded-[10px] py-2 text-[10px] text-white/50 hover:text-white/70 transition-colors"
