@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5968e52926d32287680523f907e0efd2",
+    "content-hash": "9f3ff59920324516174684f317d5b9b5",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -2279,6 +2279,63 @@
                 "source": "https://github.com/kirschbaum-development/eloquent-power-joins/tree/4.2.11"
             },
             "time": "2025-12-17T00:37:48+00:00"
+        },
+        {
+            "name": "klev-o/crypto-pay-api",
+            "version": "1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/klev-o/crypto-pay-api.git",
+                "reference": "1311c606a0ffed95a70998683b89cc2ed003e7bf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/klev-o/crypto-pay-api/zipball/1311c606a0ffed95a70998683b89cc2ed003e7bf",
+                "reference": "1311c606a0ffed95a70998683b89cc2ed003e7bf",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "^7.2",
+                "php": ">=7.4.0",
+                "psr/http-client": "^1.0",
+                "psr/http-message": "^2.0"
+            },
+            "require-dev": {
+                "monolog/monolog": "^3.3",
+                "php-di/php-di": "^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Klev\\CryptoPayApi\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Konstantin Lev",
+                    "email": "levachin.konstantin@gmail.com"
+                }
+            ],
+            "description": "Simple and convenient implementation of the Crypto Pay payment system (@CryptoBot)",
+            "keywords": [
+                "api",
+                "bot",
+                "crypto",
+                "cryptopay",
+                "php",
+                "telegram"
+            ],
+            "support": {
+                "issues": "https://github.com/klev-o/crypto-pay-api/issues",
+                "source": "https://github.com/klev-o/crypto-pay-api/tree/1.3.0"
+            },
+            "time": "2024-08-30T10:20:19+00:00"
         },
         {
             "name": "laravel/fortify",

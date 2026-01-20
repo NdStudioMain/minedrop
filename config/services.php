@@ -43,4 +43,9 @@ return [
         'token' => env('TELEGRAM_TOKEN'),
     ],
 
+    'crypto_pay' => [
+        'token' => env('CRYPTO_PAY_TOKEN'),
+        'is_testnet' => env('CRYPTO_PAY_TESTNET', true),
+    ],
+
 ];

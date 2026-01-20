@@ -1,16 +1,18 @@
 <?php
 
-use App\Http\Controllers\Api\TelegramController;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Http\Controllers\Api\CryptoPayController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BonusController;
 use App\Http\Controllers\ReferralController;
 use App\Models\Games;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+
 Route::middleware('auth')->group(function () {
 
     Route::get('/', function () {
         $games = Games::all();
+
         return Inertia::render('homePage', [
             'games' => $games,
 
@@ -28,8 +30,6 @@ Route::middleware('auth')->group(function () {
     })->name('partners');
 });
 
-
-
 Route::get('login', [AuthController::class, 'loginRedirect'])->name('login');
 Route::get('tg/auth', [AuthController::class, 'telegramAuth'])->name('tg.auth');
 Route::post('tg/auth/login', [AuthController::class, 'login'])->name('tg.auth.login');
@@ -39,13 +39,20 @@ Route::middleware('auth')->group(function () {
     Route::post('activate/promo', [BonusController::class, 'activatePromo'])->name('bonus.promo');
     Route::post('check/subscriptions', [BonusController::class, 'checkSubscriptions'])->name('bonus.check-subscriptions');
     Route::post('referral/claim', [ReferralController::class, 'claim'])->name('referral.claim');
+
+    // CryptoPay защищённые роуты
+    Route::prefix('api/crypto-pay')->group(function () {
+        Route::post('/invoice', [CryptoPayController::class, 'createInvoice'])->name('crypto-pay.create-invoice');
+        Route::get('/status/{paymentId}', [CryptoPayController::class, 'getStatus'])->name('crypto-pay.status');
+        Route::get('/payments', [CryptoPayController::class, 'getPayments'])->name('crypto-pay.payments');
+    });
 });
 
 Route::get('test', function () {
     for ($i = 0; $i < 5; $i++) {
         $bank = \App\Models\Bank::first();
-        $bankService = new \App\Service\BankService();
-        $rngService = new \App\Service\RngSerivce();
+        $bankService = new \App\Service\BankService;
+        $rngService = new \App\Service\RngSerivce;
         // $bank->update([
         //     'balance' => 100000000,
         // ]);
@@ -55,7 +62,6 @@ Route::get('test', function () {
             $randomMultiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
 
             $testMultiplier = $randomMultiplier;
-
 
             $clampedMultiplier = $bankService->clampMultiplier($bank, $testMultiplier, $testBet);
             $bankService->applyBet($bank, $testBet);
@@ -68,7 +74,6 @@ Route::get('test', function () {
 
             $testMultiplier = $randomMultiplier;
 
-
             $clampedMultiplier = $bankService->clampMultiplier($bank, $testMultiplier, $testBet);
             $bankService->applyBet($bank, $testBet);
             $bankService->applyWin($bank, $testMultiplier * $testBet);
@@ -80,7 +85,6 @@ Route::get('test', function () {
 
             $testMultiplier = $randomMultiplier;
 
-
             $clampedMultiplier = $bankService->clampMultiplier($bank, $testMultiplier, $testBet);
             $bankService->applyBet($bank, $testBet);
             $bankService->applyWin($bank, $testMultiplier * $testBet);
@@ -91,7 +95,6 @@ Route::get('test', function () {
             $randomMultiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
 
             $testMultiplier = $randomMultiplier;
-
 
             $clampedMultiplier = $bankService->clampMultiplier($bank, $testMultiplier, $testBet);
             $bankService->applyBet($bank, $testBet);

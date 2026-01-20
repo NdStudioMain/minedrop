@@ -1,21 +1,141 @@
 <script setup>
+import axios from 'axios';
 import gsap from 'gsap';
-import { nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import VSelect from 'vue-select';
 
-const methods = [
-    { label: 'Cryptobot', icon: 'assets/img/cryptobot.png' },
-];
+// Данные загружаемые с бэкенда
+const methods = ref([]);
+const currencies = ref([]);
+const isDataLoading = ref(true);
 
-const selectedMethod = ref(methods[0]);
+const selectedMethod = ref(null);
+const selectedCurrency = ref(null);
+const amount = ref('');
+const isLoading = ref(false);
+const errorMessage = ref('');
+
+// Загрузка методов и курсов с бэкенда
+const loadPaymentData = async () => {
+    isDataLoading.value = true;
+    try {
+        const response = await axios.get('/api/crypto-pay/methods');
+        if (response.data.success) {
+            // Методы оплаты
+            methods.value = response.data.data.methods.map((m) => ({
+                code: m.code,
+                label: m.name,
+                icon: m.icon || '/assets/img/cryptobot.png',
+            }));
+
+            // Криптовалюты с курсами
+            currencies.value = response.data.data.currencies.map((c) => ({
+                code: c.code,
+                label: c.label,
+                rate_to_rub: c.rate_to_rub,
+            }));
+
+            // Устанавливаем выбранные значения по умолчанию
+            if (methods.value.length > 0) {
+                selectedMethod.value = methods.value[0];
+            }
+            if (currencies.value.length > 0) {
+                selectedCurrency.value = currencies.value[0];
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки методов оплаты:', error);
+        errorMessage.value = 'Не удалось загрузить методы оплаты';
+    } finally {
+        isDataLoading.value = false;
+    }
+};
+
+// Расчёт суммы в крипте (актуальный курс с бэкенда)
+const cryptoAmount = computed(() => {
+    const amountNum = parseFloat(amount.value) || 0;
+    if (amountNum <= 0 || !selectedCurrency.value?.rate_to_rub) return '0';
+
+    // amountRub / rate_to_rub = crypto
+    const crypto = amountNum / selectedCurrency.value.rate_to_rub;
+    return crypto.toFixed(8);
+});
+
+// Форматирование курса для отображения
+const formattedRate = computed(() => {
+    if (!selectedCurrency.value?.rate_to_rub) return '';
+    return selectedCurrency.value.rate_to_rub.toLocaleString('ru-RU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+});
+
+// Валидация
+const isValid = computed(() => {
+    const amountNum = parseFloat(amount.value) || 0;
+    return (
+        amountNum >= 100 &&
+        amountNum <= 1000000 &&
+        selectedMethod.value &&
+        selectedCurrency.value
+    );
+});
+
+// Отправка формы
+const submitDeposit = async () => {
+    if (!isValid.value || isLoading.value) return;
+
+    isLoading.value = true;
+    errorMessage.value = '';
+
+    try {
+        const response = await axios.post('/api/crypto-pay/invoice', {
+            currency: selectedCurrency.value.code,
+            amount_rub: parseFloat(amount.value),
+            crypto_amount: parseFloat(cryptoAmount.value),
+        });
+
+        if (response.data.success) {
+            const paymentUrl = response.data.data.payment_url;
+
+            // Открываем оплату в Telegram WebApp или в новой вкладке
+            if (window.Telegram?.WebApp?.openTelegramLink) {
+                window.Telegram.WebApp.openTelegramLink(paymentUrl);
+            } else if (window.Telegram?.WebApp?.openLink) {
+                window.Telegram.WebApp.openLink(paymentUrl);
+            } else {
+                window.open(paymentUrl, '_blank');
+            }
+
+            // Очищаем форму
+            amount.value = '';
+        } else {
+            errorMessage.value = response.data.message || 'Ошибка создания платежа';
+        }
+    } catch (error) {
+        if (error.response?.data?.errors) {
+            const errors = error.response.data.errors;
+            const firstError = Object.values(errors)[0];
+            errorMessage.value = Array.isArray(firstError) ? firstError[0] : firstError;
+        } else if (error.response?.data?.message) {
+            errorMessage.value = error.response.data.message;
+        } else {
+            errorMessage.value = 'Произошла ошибка. Попробуйте позже.';
+        }
+    } finally {
+        isLoading.value = false;
+    }
+};
 
 const getOption = (slotProps) => slotProps?.option ?? slotProps;
 
 const methodSelect = ref(null);
-const isSelectOpen = ref(false);
+const currencySelect = ref(null);
+const isMethodSelectOpen = ref(false);
+const isCurrencySelectOpen = ref(false);
 
-const animateSelection = () => {
-    const el = methodSelect.value?.$el;
+const animateSelection = (selectRef) => {
+    const el = selectRef.value?.$el;
     if (!el) return;
 
     gsap.fromTo(
@@ -25,11 +145,20 @@ const animateSelection = () => {
     );
 };
 
-const onSelectOpen = async () => {
-    isSelectOpen.value = true;
+const onMethodSelectOpen = async () => {
+    isMethodSelectOpen.value = true;
     await nextTick();
+    animateDropdown(methodSelect);
+};
 
-    const root = methodSelect.value?.$el;
+const onCurrencySelectOpen = async () => {
+    isCurrencySelectOpen.value = true;
+    await nextTick();
+    animateDropdown(currencySelect);
+};
+
+const animateDropdown = (selectRef) => {
+    const root = selectRef.value?.$el;
     if (!root) return;
 
     const menu = root.querySelector('.vs__dropdown-menu');
@@ -62,89 +191,194 @@ const onSelectOpen = async () => {
     }
 };
 
-const onSelectClose = () => {
-    isSelectOpen.value = false;
-};
+watch(selectedMethod, () => animateSelection(methodSelect));
+watch(selectedCurrency, () => animateSelection(currencySelect));
 
-watch(selectedMethod, () => {
-    animateSelection();
+onMounted(() => {
+    loadPaymentData();
 });
 </script>
 
 <template>
     <div class="flex flex-col gap-2.5">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-[10px] text-white">Выберите метод:</h1>
-            <div
-                class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
-                :class="{ 'wallet-select-open': isSelectOpen }"
-            >
-                <VSelect
-                    ref="methodSelect"
-                    v-model="selectedMethod"
-                    :options="methods"
-                    label="label"
-                    :clearable="false"
-                    :searchable="false"
-                    :append-to-body="false"
-                    class="wallet-method-select w-full p-1.5 pr-2.5"
-                    @open="onSelectOpen"
-                    @close="onSelectClose"
+        <!-- Загрузка данных -->
+        <div v-if="isDataLoading" class="flex flex-col gap-2.5">
+            <div class="h-9 rounded-full bg-[#272727] animate-pulse" />
+            <div class="h-9 rounded-full bg-[#272727] animate-pulse" />
+            <div class="h-9 rounded-full bg-[#272727] animate-pulse" />
+            <div class="h-10 rounded-[10px] bg-[#272727] animate-pulse" />
+        </div>
+
+        <template v-else>
+            <!-- Метод оплаты -->
+            <div v-if="methods.length > 0" class="flex flex-col gap-1">
+                <h1 class="text-[10px] text-white">Метод оплаты:</h1>
+                <div
+                    class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
+                    :class="{ 'wallet-select-open': isMethodSelectOpen }"
                 >
-                    <template #selected-option="slotProps">
-                        <div class="flex items-center gap-2.5 text-xs text-white">
-                            <img
-                                :src="getOption(slotProps)?.icon"
-                                class="size-6 rounded-full"
-                                alt=""
-                            />
-                            {{ getOption(slotProps)?.label }}
-                        </div>
-                    </template>
+                    <VSelect
+                        ref="methodSelect"
+                        v-model="selectedMethod"
+                        :options="methods"
+                        label="label"
+                        :clearable="false"
+                        :searchable="false"
+                        :append-to-body="false"
+                        class="wallet-method-select w-full p-1.5 pr-2.5"
+                        @open="onMethodSelectOpen"
+                        @close="isMethodSelectOpen = false"
+                    >
+                        <template #selected-option="slotProps">
+                            <div class="flex items-center gap-2.5 text-xs text-white">
+                                <img
+                                    :src="getOption(slotProps)?.icon"
+                                    class="size-6 rounded-full"
+                                    alt=""
+                                />
+                                {{ getOption(slotProps)?.label }}
+                            </div>
+                        </template>
 
-                    <template #option="slotProps">
-                        <div class="flex items-center gap-2.5 text-xs text-white">
-                            <img
-                                :src="getOption(slotProps)?.icon"
-                                class="size-6 rounded-full"
-                                alt=""
-                            />
-                            {{ getOption(slotProps)?.label }}
-                        </div>
-                    </template>
+                        <template #option="slotProps">
+                            <div class="flex items-center gap-2.5 text-xs text-white">
+                                <img
+                                    :src="getOption(slotProps)?.icon"
+                                    class="size-6 rounded-full"
+                                    alt=""
+                                />
+                                {{ getOption(slotProps)?.label }}
+                            </div>
+                        </template>
 
-                    <template #open-indicator>
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="size-3"
-                            viewBox="0 0 10 9"
-                            fill="none"
-                        >
-                            <path
-                                d="M6.33312 7.5C5.56332 8.83333 3.63882 8.83333 2.86902 7.5L0.270947 3C-0.498854 1.66667 0.463398 2.00122e-08 2.003 -1.14584e-07L7.19915 -5.68846e-07C8.73875 -7.03442e-07 9.701 1.66667 8.9312 3L6.33312 7.5Z"
-                                fill="#4E4E4E"
-                            />
-                        </svg>
-                    </template>
-                </VSelect>
+                        <template #open-indicator>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="size-3"
+                                viewBox="0 0 10 9"
+                                fill="none"
+                            >
+                                <path
+                                    d="M6.33312 7.5C5.56332 8.83333 3.63882 8.83333 2.86902 7.5L0.270947 3C-0.498854 1.66667 0.463398 2.00122e-08 2.003 -1.14584e-07L7.19915 -5.68846e-07C8.73875 -7.03442e-07 9.701 1.66667 8.9312 3L6.33312 7.5Z"
+                                    fill="#4E4E4E"
+                                />
+                            </svg>
+                        </template>
+                    </VSelect>
+                </div>
             </div>
-        </div>
 
-        <div class="flex flex-col gap-1">
-            <h1 class="text-[10px] text-white">Выберите метод:</h1>
-            <input
-                type="text"
-                class="rounded-full bg-[#272727] p-2.5 text-xs text-white outline-0"
-                placeholder="Введите сумму"
-            />
-            <span class="text-[#333333] text-[10px]">
-                Минимальная сумма 100.00
-            </span>
-        </div>
+            <!-- Криптовалюта -->
+            <div v-if="currencies.length > 0" class="flex flex-col gap-1">
+                <h1 class="text-[10px] text-white">Криптовалюта:</h1>
+                <div
+                    class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
+                    :class="{ 'wallet-select-open': isCurrencySelectOpen }"
+                >
+                    <VSelect
+                        ref="currencySelect"
+                        v-model="selectedCurrency"
+                        :options="currencies"
+                        label="label"
+                        :clearable="false"
+                        :searchable="false"
+                        :append-to-body="false"
+                        class="wallet-method-select w-full p-1.5 pr-2.5"
+                        @open="onCurrencySelectOpen"
+                        @close="isCurrencySelectOpen = false"
+                    >
+                        <template #selected-option="slotProps">
+                            <div class="flex items-center gap-2.5 text-xs text-white">
+                                {{ getOption(slotProps)?.label }}
+                                <span v-if="getOption(slotProps)?.rate_to_rub" class="text-[#6CA243]">
+                                    (1 = {{ getOption(slotProps)?.rate_to_rub?.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) }} ₽)
+                                </span>
+                            </div>
+                        </template>
 
-        <button class="main-btn w-full rounded-[10px] py-2.5 text-[10px] text-white">
-            Пополнить
-        </button>
+                        <template #option="slotProps">
+                            <div class="flex items-center justify-between gap-2.5 text-xs text-white w-full">
+                                <span>{{ getOption(slotProps)?.label }}</span>
+                                <span v-if="getOption(slotProps)?.rate_to_rub" class="text-[#6CA243] text-[10px]">
+                                    {{ getOption(slotProps)?.rate_to_rub?.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) }} ₽
+                                </span>
+                            </div>
+                        </template>
+
+                        <template #open-indicator>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="size-3"
+                                viewBox="0 0 10 9"
+                                fill="none"
+                            >
+                                <path
+                                    d="M6.33312 7.5C5.56332 8.83333 3.63882 8.83333 2.86902 7.5L0.270947 3C-0.498854 1.66667 0.463398 2.00122e-08 2.003 -1.14584e-07L7.19915 -5.68846e-07C8.73875 -7.03442e-07 9.701 1.66667 8.9312 3L6.33312 7.5Z"
+                                    fill="#4E4E4E"
+                                />
+                            </svg>
+                        </template>
+                    </VSelect>
+                </div>
+            </div>
+
+            <!-- Сумма пополнения -->
+            <div class="flex flex-col gap-1">
+                <h1 class="text-[10px] text-white">Сумма пополнения (RUB):</h1>
+                <input
+                    v-model="amount"
+                    type="number"
+                    class="rounded-full bg-[#272727] p-2.5 text-xs text-white outline-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    placeholder="Введите сумму"
+                    min="100"
+                    max="1000000"
+                />
+                <div class="flex justify-between items-center">
+                    <span class="text-[#333333] text-[10px]">Минимум: 100 RUB</span>
+                    <span
+                        v-if="amount && parseFloat(amount) > 0 && selectedCurrency"
+                        class="text-[#6CA243] text-[10px]"
+                    >
+                        ≈ {{ cryptoAmount }} {{ selectedCurrency.code }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Сообщение об ошибке -->
+            <div
+                v-if="errorMessage"
+                class="rounded-lg bg-red-500/20 p-2 text-center text-xs text-red-400"
+            >
+                {{ errorMessage }}
+            </div>
+
+            <!-- Кнопка -->
+            <button
+                class="main-btn w-full rounded-[10px] py-2.5 text-[10px] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="!isValid || isLoading"
+                @click="submitDeposit"
+            >
+                <span v-if="isLoading" class="flex items-center justify-center gap-2">
+                    <svg class="animate-spin size-4" viewBox="0 0 24 24" fill="none">
+                        <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                        />
+                        <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                    </svg>
+                    Создание...
+                </span>
+                <span v-else>Пополнить</span>
+            </button>
+        </template>
     </div>
 </template>
 
@@ -257,5 +491,3 @@ watch(selectedMethod, () => {
     box-shadow: none !important;
 }
 </style>
-
-
