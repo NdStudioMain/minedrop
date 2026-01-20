@@ -98,14 +98,8 @@ const submitDeposit = async () => {
         if (response.data.success) {
             const paymentUrl = response.data.data.payment_url;
 
-            // Открываем оплату в Telegram WebApp или в новой вкладке
-            if (window.Telegram?.WebApp?.openTelegramLink) {
-                window.Telegram.WebApp.openTelegramLink(paymentUrl);
-            } else if (window.Telegram?.WebApp?.openLink) {
-                window.Telegram.WebApp.openLink(paymentUrl);
-            } else {
-                window.open(paymentUrl, '_blank');
-            }
+            // Открываем оплату в новой вкладке
+            window.open(paymentUrl, '_blank');
 
             // Очищаем форму
             amount.value = '';
