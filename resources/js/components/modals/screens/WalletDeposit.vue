@@ -14,7 +14,6 @@ const selectedCurrency = ref(null);
 const amount = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
-const paymentUrl = ref(null); // Ссылка на оплату после создания
 
 // Загрузка методов и курсов с бэкенда
 const loadPaymentData = async () => {
@@ -88,7 +87,6 @@ const submitDeposit = async () => {
 
     isLoading.value = true;
     errorMessage.value = '';
-    paymentUrl.value = null;
 
     try {
         const response = await axios.post('/api/crypto-pay/invoice', {
@@ -98,8 +96,10 @@ const submitDeposit = async () => {
         });
 
         if (response.data.success) {
-            const url = response.data.data.payment_url;
-            paymentUrl.value = url;
+            const paymentUrl = response.data.data.payment_url;
+
+            // Открываем оплату в новой вкладке
+            window.open(paymentUrl, '_blank');
 
             // Очищаем форму
             amount.value = '';
@@ -119,51 +119,6 @@ const submitDeposit = async () => {
     } finally {
         isLoading.value = false;
     }
-};
-
-// Открыть ссылку на оплату
-const openPaymentLink = () => {
-    if (!paymentUrl.value) {
-        console.error('Payment URL is empty!');
-        errorMessage.value = 'Ссылка на оплату не найдена';
-        return;
-    }
-
-    const url = paymentUrl.value;
-    console.log('Payment URL:', url);
-
-    // Проверяем что URL валидный
-    if (!url || url === '') {
-        console.error('Payment URL is invalid!');
-        errorMessage.value = 'Некорректная ссылка на оплату';
-        return;
-    }
-
-    const isTelegramLink = url.includes('t.me/');
-    const tg = window.Telegram?.WebApp;
-
-    try {
-        if (tg && isTelegramLink) {
-            console.log('Opening via openTelegramLink:', url);
-            tg.openTelegramLink(url);
-        } else if (tg) {
-            console.log('Opening via openLink:', url);
-            tg.openLink(url);
-        } else {
-            console.log('Opening via window.open:', url);
-            window.open(url, '_blank');
-        }
-    } catch (e) {
-        console.error('Error opening link:', e);
-        // Фоллбэк - показываем ссылку для копирования
-        errorMessage.value = 'Не удалось открыть ссылку. Скопируйте: ' + url;
-    }
-};
-
-// Сбросить состояние для нового платежа
-const resetPayment = () => {
-    paymentUrl.value = null;
-    errorMessage.value = '';
 };
 
 const getOption = (slotProps) => slotProps?.option ?? slotProps;
@@ -391,41 +346,8 @@ onMounted(() => {
                 {{ errorMessage }}
             </div>
 
-            <!-- Ссылка на оплату (после создания) -->
-            <div v-if="paymentUrl" class="flex flex-col gap-2.5">
-                <div class="rounded-lg bg-[#6CA243]/20 p-3 text-center">
-                    <p class="text-xs text-[#6CA243] mb-2">Счёт успешно создан!</p>
-                    <p class="text-[10px] text-white/70 mb-2">Нажмите кнопку для перехода к оплате</p>
-                </div>
-
-                <button
-                    class="main-btn flex items-center justify-center gap-2 w-full rounded-[10px] py-2.5 text-[10px] text-white"
-                    @click="openPaymentLink"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 2L11 13" />
-                        <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-                    </svg>
-                    Оплатить в CryptoBot
-                </button>
-
-                <!-- Ссылка для копирования -->
-                <div class="rounded-lg bg-[#1a1a1a] p-2">
-                    <p class="text-[9px] text-white/40 mb-1">Или скопируйте ссылку:</p>
-                    <p class="text-[10px] text-white/70 break-all select-all">{{ paymentUrl }}</p>
-                </div>
-
-                <button
-                    class="w-full rounded-[10px] py-2 text-[10px] text-white/50 hover:text-white/70 transition-colors"
-                    @click="resetPayment"
-                >
-                    Отмена
-                </button>
-            </div>
-
-            <!-- Кнопка создания платежа -->
+            <!-- Кнопка -->
             <button
-                v-else
                 class="main-btn w-full rounded-[10px] py-2.5 text-[10px] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 :disabled="!isValid || isLoading"
                 @click="submitDeposit"
