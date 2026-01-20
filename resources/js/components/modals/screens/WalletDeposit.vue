@@ -395,7 +395,6 @@ onMounted(() => {
             <div v-if="paymentUrl" class="flex flex-col gap-2.5">
                 <div class="rounded-lg bg-[#6CA243]/20 p-3 text-center">
                     <p class="text-xs text-[#6CA243] mb-2">Счёт успешно создан!</p>
-                    <a href="https://t.me/CryptoBot?start=IVOEdkZRrSqc">123</a>
                     <p class="text-[10px] text-white/70 mb-2">Нажмите кнопку для перехода к оплате</p>
                 </div>
 
