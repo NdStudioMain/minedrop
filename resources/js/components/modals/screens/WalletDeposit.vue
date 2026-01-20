@@ -14,6 +14,7 @@ const selectedCurrency = ref(null);
 const amount = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
+const paymentUrl = ref(null); // Ссылка на оплату после создания
 
 // Загрузка методов и курсов с бэкенда
 const loadPaymentData = async () => {
@@ -87,6 +88,7 @@ const submitDeposit = async () => {
 
     isLoading.value = true;
     errorMessage.value = '';
+    paymentUrl.value = null;
 
     try {
         const response = await axios.post('/api/crypto-pay/invoice', {
@@ -96,10 +98,8 @@ const submitDeposit = async () => {
         });
 
         if (response.data.success) {
-            const paymentUrl = response.data.data.payment_url;
-
-            // Открываем оплату в новой вкладке
-            window.open(paymentUrl, '_blank');
+            const url = response.data.data.payment_url;
+            paymentUrl.value = url;
 
             // Очищаем форму
             amount.value = '';
@@ -119,6 +119,19 @@ const submitDeposit = async () => {
     } finally {
         isLoading.value = false;
     }
+};
+
+// Открыть ссылку на оплату
+const openPaymentLink = () => {
+    if (paymentUrl.value) {
+        window.location.href = paymentUrl.value;
+    }
+};
+
+// Сбросить состояние для нового платежа
+const resetPayment = () => {
+    paymentUrl.value = null;
+    errorMessage.value = '';
 };
 
 const getOption = (slotProps) => slotProps?.option ?? slotProps;
@@ -346,8 +359,38 @@ onMounted(() => {
                 {{ errorMessage }}
             </div>
 
-            <!-- Кнопка -->
+            <!-- Ссылка на оплату (после создания) -->
+            <div v-if="paymentUrl" class="flex flex-col gap-2.5">
+                <div class="rounded-lg bg-[#6CA243]/20 p-3 text-center">
+                    <p class="text-xs text-[#6CA243] mb-2">Счёт успешно создан!</p>
+                    <p class="text-[10px] text-white/70">Нажмите кнопку ниже для перехода к оплате</p>
+                </div>
+
+                <a
+                    :href="paymentUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="main-btn flex items-center justify-center gap-2 w-full rounded-[10px] py-2.5 text-[10px] text-white"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                    Перейти к оплате
+                </a>
+
+                <button
+                    class="w-full rounded-[10px] py-2 text-[10px] text-white/50 hover:text-white/70 transition-colors"
+                    @click="resetPayment"
+                >
+                    Создать новый платёж
+                </button>
+            </div>
+
+            <!-- Кнопка создания платежа -->
             <button
+                v-else
                 class="main-btn w-full rounded-[10px] py-2.5 text-[10px] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 :disabled="!isValid || isLoading"
                 @click="submitDeposit"
