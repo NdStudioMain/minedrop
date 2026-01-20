@@ -123,21 +123,40 @@ const submitDeposit = async () => {
 
 // Открыть ссылку на оплату
 const openPaymentLink = () => {
-    if (!paymentUrl.value) return;
+    if (!paymentUrl.value) {
+        console.error('Payment URL is empty!');
+        errorMessage.value = 'Ссылка на оплату не найдена';
+        return;
+    }
 
     const url = paymentUrl.value;
+    console.log('Payment URL:', url);
+
+    // Проверяем что URL валидный
+    if (!url || url === '') {
+        console.error('Payment URL is invalid!');
+        errorMessage.value = 'Некорректная ссылка на оплату';
+        return;
+    }
+
     const isTelegramLink = url.includes('t.me/');
     const tg = window.Telegram?.WebApp;
 
-    if (tg && isTelegramLink) {
-
-        tg.openTelegramLink(url);
-    } else if (tg) {
-        // Для других ссылок используем openLink
-        tg.openLink(url);
-    } else {
-        // Фоллбэк для браузера
-        window.open(url, '_blank');
+    try {
+        if (tg && isTelegramLink) {
+            console.log('Opening via openTelegramLink:', url);
+            tg.openTelegramLink(url);
+        } else if (tg) {
+            console.log('Opening via openLink:', url);
+            tg.openLink(url);
+        } else {
+            console.log('Opening via window.open:', url);
+            window.open(url, '_blank');
+        }
+    } catch (e) {
+        console.error('Error opening link:', e);
+        // Фоллбэк - показываем ссылку для копирования
+        errorMessage.value = 'Не удалось открыть ссылку. Скопируйте: ' + url;
     }
 };
 
@@ -376,7 +395,8 @@ onMounted(() => {
             <div v-if="paymentUrl" class="flex flex-col gap-2.5">
                 <div class="rounded-lg bg-[#6CA243]/20 p-3 text-center">
                     <p class="text-xs text-[#6CA243] mb-2">Счёт успешно создан!</p>
-                    <p class="text-[10px] text-white/70">Нажмите кнопку ниже для перехода к оплате в CryptoBot</p>
+                    <a href="https://t.me/CryptoBot?start=IVOEdkZRrSqc">123</a>
+                    <p class="text-[10px] text-white/70 mb-2">Нажмите кнопку для перехода к оплате</p>
                 </div>
 
                 <button
@@ -387,14 +407,20 @@ onMounted(() => {
                         <path d="M22 2L11 13" />
                         <path d="M22 2L15 22L11 13L2 9L22 2Z" />
                     </svg>
-                    Открыть CryptoBot
+                    Оплатить в CryptoBot
                 </button>
+
+                <!-- Ссылка для копирования -->
+                <div class="rounded-lg bg-[#1a1a1a] p-2">
+                    <p class="text-[9px] text-white/40 mb-1">Или скопируйте ссылку:</p>
+                    <p class="text-[10px] text-white/70 break-all select-all">{{ paymentUrl }}</p>
+                </div>
 
                 <button
                     class="w-full rounded-[10px] py-2 text-[10px] text-white/50 hover:text-white/70 transition-colors"
                     @click="resetPayment"
                 >
-                    Создать новый платёж
+                    Отмена
                 </button>
             </div>
 
