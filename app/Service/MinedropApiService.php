@@ -49,7 +49,6 @@ class MinedropApiService
 
         if ($mode == 'BONUS') {
             $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 3);
-
         } else {
             $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
         }
@@ -72,6 +71,9 @@ class MinedropApiService
             $win = $multiplier * $bet;
             if($request->mode == 'BONUS') {
                 $bankService->applyBet($bank, $bet * 100);
+            }
+            else if($request->mode == "ANTE") {
+                $bankService->applyBet($bank, $bet * 3);
             }
             else{
                 $bankService->applyBet($bank, $bet);
