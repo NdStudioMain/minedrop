@@ -19,6 +19,12 @@ class PaymentSystemSeeder extends Seeder
                 'icon' => '/assets/img/cryptobot.png',
                 'is_active' => true,
             ],
+            [
+                'code' => 'nspk',
+                'name' => 'СБП / Карта',
+                'icon' => '/assets/img/sbp.png',
+                'is_active' => true,
+            ],
         ];
 
         foreach ($systems as $system) {

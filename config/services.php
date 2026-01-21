@@ -48,4 +48,10 @@ return [
         'is_testnet' => env('CRYPTO_PAY_TESTNET', true),
     ],
 
+    'cryptura' => [
+        'api_url' => env('CRYPTURA_API_URL', 'https://cryptura.space'),
+        'api_key' => env('CRYPTURA_API_KEY'),
+        'username' => env('CRYPTURA_USERNAME'),
+    ],
+
 ];

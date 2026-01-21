@@ -15,6 +15,9 @@ const amount = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
 
+// Проверка, выбран ли метод CryptoPay (криптовалюта)
+const isCryptoMethod = computed(() => selectedMethod.value?.code === 'crypto_pay');
+
 // Загрузка методов и курсов с бэкенда
 const loadPaymentData = async () => {
     isDataLoading.value = true;
@@ -35,10 +38,14 @@ const loadPaymentData = async () => {
                 rate_to_rub: c.rate_to_rub,
             }));
 
-            // Устанавливаем выбранные значения по умолчанию
-            if (methods.value.length > 0) {
+            // По умолчанию выбираем НСПК если доступен
+            const nspkMethod = methods.value.find((m) => m.code === 'nspk');
+            if (nspkMethod) {
+                selectedMethod.value = nspkMethod;
+            } else if (methods.value.length > 0) {
                 selectedMethod.value = methods.value[0];
             }
+
             if (currencies.value.length > 0) {
                 selectedCurrency.value = currencies.value[0];
             }
@@ -51,37 +58,29 @@ const loadPaymentData = async () => {
     }
 };
 
-// Расчёт суммы в крипте (актуальный курс с бэкенда)
+// Расчёт суммы в крипте
 const cryptoAmount = computed(() => {
+    if (!isCryptoMethod.value) return '0';
     const amountNum = parseFloat(amount.value) || 0;
     if (amountNum <= 0 || !selectedCurrency.value?.rate_to_rub) return '0';
-
-    // amountRub / rate_to_rub = crypto
     const crypto = amountNum / selectedCurrency.value.rate_to_rub;
     return crypto.toFixed(8);
 });
 
-// Форматирование курса для отображения
-const formattedRate = computed(() => {
-    if (!selectedCurrency.value?.rate_to_rub) return '';
-    return selectedCurrency.value.rate_to_rub.toLocaleString('ru-RU', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-});
+// Лимиты суммы
+const minAmount = computed(() => 100);
+const maxAmount = computed(() => (isCryptoMethod.value ? 1000000 : 100000));
 
 // Валидация
 const isValid = computed(() => {
     const amountNum = parseFloat(amount.value) || 0;
-    return (
-        amountNum >= 100 &&
-        amountNum <= 1000000 &&
-        selectedMethod.value &&
-        selectedCurrency.value
-    );
+    if (amountNum < minAmount.value || amountNum > maxAmount.value) return false;
+    if (!selectedMethod.value) return false;
+    if (isCryptoMethod.value && !selectedCurrency.value) return false;
+    return true;
 });
 
-// Отправка формы
+// Отправка формы — ОДИН запрос на бэкенд
 const submitDeposit = async () => {
     if (!isValid.value || isLoading.value) return;
 
@@ -89,36 +88,38 @@ const submitDeposit = async () => {
     errorMessage.value = '';
 
     try {
-        const response = await axios.post('/api/crypto-pay/invoice', {
-            currency: selectedCurrency.value.code,
-            amount_rub: parseFloat(amount.value),
-            crypto_amount: parseFloat(cryptoAmount.value),
-        });
+        const payload = {
+            method: selectedMethod.value.code,
+            amount: parseFloat(amount.value),
+        };
+
+        // Для крипты добавляем валюту
+        if (isCryptoMethod.value && selectedCurrency.value) {
+            payload.currency = selectedCurrency.value.code;
+        }
+
+        const response = await axios.post('/api/payment', payload);
 
         if (response.data.success) {
             const paymentUrl = response.data.data.payment_url;
-            console.log('Payment URL:', paymentUrl);
 
             if (!paymentUrl) {
                 errorMessage.value = 'Ссылка на оплату не получена';
                 return;
             }
 
-            // Редирект на страницу оплаты
             window.location.href = paymentUrl;
-
-            // Очищаем форму
             amount.value = '';
         } else {
             errorMessage.value = response.data.message || 'Ошибка создания платежа';
         }
     } catch (error) {
-        if (error.response?.data?.errors) {
+        if (error.response?.data?.message) {
+            errorMessage.value = error.response.data.message;
+        } else if (error.response?.data?.errors) {
             const errors = error.response.data.errors;
             const firstError = Object.values(errors)[0];
             errorMessage.value = Array.isArray(firstError) ? firstError[0] : firstError;
-        } else if (error.response?.data?.message) {
-            errorMessage.value = error.response.data.message;
         } else {
             errorMessage.value = 'Произошла ошибка. Попробуйте позже.';
         }
@@ -137,7 +138,6 @@ const isCurrencySelectOpen = ref(false);
 const animateSelection = (selectRef) => {
     const el = selectRef.value?.$el;
     if (!el) return;
-
     gsap.fromTo(
         el,
         { scale: 0.99 },
@@ -160,7 +160,6 @@ const onCurrencySelectOpen = async () => {
 const animateDropdown = (selectRef) => {
     const root = selectRef.value?.$el;
     if (!root) return;
-
     const menu = root.querySelector('.vs__dropdown-menu');
     if (menu) {
         gsap.fromTo(
@@ -175,7 +174,6 @@ const animateDropdown = (selectRef) => {
                 clearProps: 'transform,filter',
             },
         );
-
         const options = menu.querySelectorAll('.vs__dropdown-option');
         if (options.length > 0) {
             gsap.from(options, {
@@ -268,8 +266,8 @@ onMounted(() => {
                 </div>
             </div>
 
-            <!-- Криптовалюта -->
-            <div v-if="currencies.length > 0" class="flex flex-col gap-1">
+            <!-- Криптовалюта (только для CryptoPay) -->
+            <div v-if="isCryptoMethod && currencies.length > 0" class="flex flex-col gap-1">
                 <h1 class="text-[10px] text-white">Криптовалюта:</h1>
                 <div
                     class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
@@ -330,13 +328,15 @@ onMounted(() => {
                     type="number"
                     class="rounded-full bg-[#272727] p-2.5 text-xs text-white outline-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     placeholder="Введите сумму"
-                    min="100"
-                    max="1000000"
+                    :min="minAmount"
+                    :max="maxAmount"
                 />
                 <div class="flex justify-between items-center">
-                    <span class="text-[#333333] text-[10px]">Минимум: 100 RUB</span>
+                    <span class="text-[#333333] text-[10px]">
+                        {{ minAmount }} - {{ maxAmount.toLocaleString('ru-RU') }} ₽
+                    </span>
                     <span
-                        v-if="amount && parseFloat(amount) > 0 && selectedCurrency"
+                        v-if="isCryptoMethod && amount && parseFloat(amount) > 0 && selectedCurrency"
                         class="text-[#6CA243] text-[10px]"
                     >
                         ≈ {{ cryptoAmount }} {{ selectedCurrency.code }}

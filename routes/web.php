@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\CryptoPayController;
+use App\Http\Controllers\Api\CrypturaController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BonusController;
 use App\Http\Controllers\ReferralController;
@@ -40,11 +42,19 @@ Route::middleware('auth')->group(function () {
     Route::post('check/subscriptions', [BonusController::class, 'checkSubscriptions'])->name('bonus.check-subscriptions');
     Route::post('referral/claim', [ReferralController::class, 'claim'])->name('referral.claim');
 
-    // CryptoPay защищённые роуты
+    // Единый эндпоинт для создания платежа
+    Route::post('/api/payment', [PaymentController::class, 'createPayment'])->name('payment.create');
+
+    // CryptoPay роуты
     Route::prefix('api/crypto-pay')->group(function () {
-        Route::post('/invoice', [CryptoPayController::class, 'createInvoice'])->name('crypto-pay.create-invoice');
         Route::get('/status/{paymentId}', [CryptoPayController::class, 'getStatus'])->name('crypto-pay.status');
         Route::get('/payments', [CryptoPayController::class, 'getPayments'])->name('crypto-pay.payments');
+    });
+
+    // Cryptura роуты
+    Route::prefix('api/cryptura')->group(function () {
+        Route::get('/status/{paymentId}', [CrypturaController::class, 'getStatus'])->name('cryptura.status');
+        Route::get('/payments', [CrypturaController::class, 'getPayments'])->name('cryptura.payments');
     });
 });
 
