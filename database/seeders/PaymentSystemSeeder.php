@@ -22,7 +22,7 @@ class PaymentSystemSeeder extends Seeder
             [
                 'code' => 'nspk',
                 'name' => 'СБП / Карта',
-                'icon' => '/assets/img/sbp.png',
+                'icon' => '/assets/img/sbp.webp',
                 'is_active' => true,
             ],
         ];
