@@ -68,7 +68,7 @@ const cryptoAmount = computed(() => {
 });
 
 // Лимиты суммы
-const minAmount = computed(() => 100);
+const minAmount = computed(() => 2000);
 const maxAmount = computed(() => (isCryptoMethod.value ? 1000000 : 100000));
 
 // Валидация

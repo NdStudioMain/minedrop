@@ -23,7 +23,7 @@ class PaymentController extends Controller
     {
         $request->validate([
             'method' => 'required|string|in:crypto_pay,nspk',
-            'amount' => 'required|numeric|min:100',
+            'amount' => 'required|numeric|min:2000',
             'currency' => 'nullable|string', // Только для crypto_pay
         ]);
 
@@ -89,7 +89,7 @@ class PaymentController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ошибка создания платежа: ' . $e->getMessage(),
+                'message' => 'Ошибка создания платежа: '.$e->getMessage(),
             ], 500);
         }
     }

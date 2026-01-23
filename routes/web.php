@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CryptoPayController;
 use App\Http\Controllers\Api\CrypturaController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\WithdrawalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BonusController;
 use App\Http\Controllers\ReferralController;
@@ -55,6 +56,14 @@ Route::middleware('auth')->group(function () {
     Route::prefix('api/cryptura')->group(function () {
         Route::get('/status/{paymentId}', [CrypturaController::class, 'getStatus'])->name('cryptura.status');
         Route::get('/payments', [CrypturaController::class, 'getPayments'])->name('cryptura.payments');
+    });
+
+    // Выводы
+    Route::prefix('api/withdrawal')->group(function () {
+        Route::post('/', [WithdrawalController::class, 'create'])->name('withdrawal.create');
+        Route::get('/', [WithdrawalController::class, 'index'])->name('withdrawal.index');
+        Route::get('/{id}', [WithdrawalController::class, 'status'])->name('withdrawal.status');
+        Route::post('/{id}/cancel', [WithdrawalController::class, 'cancel'])->name('withdrawal.cancel');
     });
 });
 
