@@ -5,8 +5,7 @@ import { computed, nextTick, ref, watch } from 'vue';
 import VSelect from 'vue-select';
 
 const methods = [
-    { code: 'sbp', label: 'СБП', icon: '/assets/img/cryptobot.png' },
-    { code: 'card', label: 'Карта', icon: '/assets/img/cryptobot.png' },
+    { code: 'card', label: 'Карта', icon: '/assets/img/card.png' },
 ];
 
 const selectedMethod = ref(methods[0]);
