@@ -1,13 +1,82 @@
 <script setup>
+import axios from 'axios';
 import gsap from 'gsap';
-import { nextTick, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import VSelect from 'vue-select';
 
 const methods = [
-    { label: 'Cryptobot', icon: 'assets/img/cryptobot.png' },
+    { code: 'sbp', label: 'СБП', icon: '/assets/img/cryptobot.png' },
+    { code: 'card', label: 'Карта', icon: '/assets/img/cryptobot.png' },
 ];
 
 const selectedMethod = ref(methods[0]);
+const cardNumber = ref('');
+const bankName = ref('');
+const amount = ref('');
+const isLoading = ref(false);
+const errorMessage = ref('');
+const successMessage = ref('');
+
+const MIN_AMOUNT = 2000;
+const MAX_AMOUNT = 100000;
+
+// Валидация
+const isValid = computed(() => {
+    const amountNum = parseFloat(amount.value) || 0;
+    if (amountNum < MIN_AMOUNT || amountNum > MAX_AMOUNT) return false;
+    if (!cardNumber.value || cardNumber.value.length < 10) return false;
+    return true;
+});
+
+// Плейсхолдер для поля ввода
+const cardPlaceholder = computed(() => {
+    return selectedMethod.value?.code === 'sbp' ? 'Номер телефона (79...' : 'Номер карты';
+});
+
+// Лейбл для поля ввода
+const cardLabel = computed(() => {
+    return selectedMethod.value?.code === 'sbp' ? 'Номер телефона:' : 'Номер карты:';
+});
+
+// Отправка заявки
+const submitWithdraw = async () => {
+    if (!isValid.value || isLoading.value) return;
+
+    isLoading.value = true;
+    errorMessage.value = '';
+    successMessage.value = '';
+
+    try {
+        const response = await axios.post('/api/withdrawal', {
+            amount: parseFloat(amount.value),
+            card_number: cardNumber.value,
+            method: selectedMethod.value.code,
+            bank_name: bankName.value || null,
+        });
+
+        if (response.data.success) {
+            successMessage.value = 'Заявка создана! Ожидайте выплату.';
+            // Очищаем форму
+            amount.value = '';
+            cardNumber.value = '';
+            bankName.value = '';
+        } else {
+            errorMessage.value = response.data.message || 'Ошибка создания заявки';
+        }
+    } catch (error) {
+        if (error.response?.data?.message) {
+            errorMessage.value = error.response.data.message;
+        } else if (error.response?.data?.errors) {
+            const errors = error.response.data.errors;
+            const firstError = Object.values(errors)[0];
+            errorMessage.value = Array.isArray(firstError) ? firstError[0] : firstError;
+        } else {
+            errorMessage.value = 'Произошла ошибка. Попробуйте позже.';
+        }
+    } finally {
+        isLoading.value = false;
+    }
+};
 
 const getOption = (slotProps) => slotProps?.option ?? slotProps;
 
@@ -68,13 +137,16 @@ const onSelectClose = () => {
 
 watch(selectedMethod, () => {
     animateSelection();
+    // Очищаем поле при смене метода
+    cardNumber.value = '';
 });
 </script>
 
 <template>
     <div class="flex flex-col gap-2.5">
+        <!-- Метод вывода -->
         <div class="flex flex-col gap-1">
-            <h1 class="text-[10px] text-white">Выберите метод:</h1>
+            <h1 class="text-[10px] text-white">Метод вывода:</h1>
             <div
                 class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
                 :class="{ 'wallet-select-open': isSelectOpen }"
@@ -130,20 +202,86 @@ watch(selectedMethod, () => {
             </div>
         </div>
 
+        <!-- Номер карты / телефон -->
         <div class="flex flex-col gap-1">
-            <h1 class="text-[10px] text-white">Выберите метод:</h1>
+            <h1 class="text-[10px] text-white">{{ cardLabel }}</h1>
             <input
+                v-model="cardNumber"
                 type="text"
                 class="rounded-full bg-[#272727] p-2.5 text-xs text-white outline-0"
+                :placeholder="cardPlaceholder"
+                maxlength="20"
+            />
+        </div>
+
+        <!-- Банк (опционально) -->
+        <div class="flex flex-col gap-1">
+            <h1 class="text-[10px] text-white">Банк (опционально):</h1>
+            <input
+                v-model="bankName"
+                type="text"
+                class="rounded-full bg-[#272727] p-2.5 text-xs text-white outline-0"
+                placeholder="Сбербанк, Тинькофф..."
+            />
+        </div>
+
+        <!-- Сумма -->
+        <div class="flex flex-col gap-1">
+            <h1 class="text-[10px] text-white">Сумма вывода (RUB):</h1>
+            <input
+                v-model="amount"
+                type="number"
+                class="rounded-full bg-[#272727] p-2.5 text-xs text-white outline-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 placeholder="Введите сумму"
+                :min="MIN_AMOUNT"
+                :max="MAX_AMOUNT"
             />
             <span class="text-[#333333] text-[10px]">
-                Минимальная сумма 100.00
+                {{ MIN_AMOUNT.toLocaleString('ru-RU') }} - {{ MAX_AMOUNT.toLocaleString('ru-RU') }} ₽
             </span>
         </div>
 
-        <button class="main-btn w-full rounded-[10px] py-2.5 text-[10px] text-white">
-            Вывод
+        <!-- Сообщение об ошибке -->
+        <div
+            v-if="errorMessage"
+            class="rounded-lg bg-red-500/20 p-2 text-center text-xs text-red-400"
+        >
+            {{ errorMessage }}
+        </div>
+
+        <!-- Сообщение об успехе -->
+        <div
+            v-if="successMessage"
+            class="rounded-lg bg-green-500/20 p-2 text-center text-xs text-green-400"
+        >
+            {{ successMessage }}
+        </div>
+
+        <!-- Кнопка -->
+        <button
+            class="main-btn w-full rounded-[10px] py-2.5 text-[10px] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="!isValid || isLoading"
+            @click="submitWithdraw"
+        >
+            <span v-if="isLoading" class="flex items-center justify-center gap-2">
+                <svg class="animate-spin size-4" viewBox="0 0 24 24" fill="none">
+                    <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                    />
+                    <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                </svg>
+                Создание...
+            </span>
+            <span v-else>Вывести</span>
         </button>
     </div>
 </template>
@@ -257,5 +395,3 @@ watch(selectedMethod, () => {
     box-shadow: none !important;
 }
 </style>
-
-
