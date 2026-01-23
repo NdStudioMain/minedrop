@@ -41,69 +41,20 @@ class CrypturaService
     }
 
     /**
-     * Создать платёж через окно оплаты (payment window)
+     * Создать платёж через НСПК (СБП QR)
      */
     public function createPaymentWindow(User $user, float $amount): Payment
     {
         $response = Http::withHeaders([
             'X-API-Key' => $this->apiKey,
             'Content-Type' => 'application/json',
-        ])->post("{$this->apiUrl}/api/payments/window", [
+        ])->post("{$this->apiUrl}/api/payments", [
+            'method' => 'nspk',
             'sum' => $amount,
         ]);
 
         if (! $response->successful()) {
-            Log::error('Cryptura createPaymentWindow failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-            throw new \Exception('Ошибка создания платежа: '.$response->body());
-        }
-
-        $data = $response->json();
-
-        return Payment::create([
-            'user_id' => $user->id,
-            'payment_system_id' => $this->getPaymentSystem()->id,
-            'amount' => $amount,
-            'status' => 'pending',
-            'payment_url' => $data['payment_url'] ?? '',
-            'payment_id' => $data['invid'] ?? '',
-            'payment_data' => [
-                'invid' => $data['invid'] ?? null,
-                'window_token' => $data['window_token'] ?? null,
-                'expire_at' => $data['expire_at'] ?? null,
-                'poll_interval_seconds' => $data['poll_interval_seconds'] ?? 15,
-                'max_poll_seconds' => $data['max_poll_seconds'] ?? 180,
-            ],
-        ]);
-    }
-
-    /**
-     * Создать платёж напрямую (без окна)
-     */
-    public function createPayment(
-        User $user,
-        float $amount,
-        string $method = 'sbp',
-        ?string $internalId = null
-    ): Payment {
-        $payload = [
-            'sum' => $amount,
-            'method' => $method,
-        ];
-
-        if ($internalId) {
-            $payload['internal_id'] = $internalId;
-        }
-
-        $response = Http::withHeaders([
-            'X-API-Key' => $this->apiKey,
-            'Content-Type' => 'application/json',
-        ])->post("{$this->apiUrl}/api/payments", $payload);
-
-        if (! $response->successful()) {
-            Log::error('Cryptura createPayment failed', [
+            Log::error('Cryptura NSPK payment failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
@@ -112,22 +63,25 @@ class CrypturaService
 
         $data = $response->json();
         $paymentDetails = $data['payment_details'] ?? [];
+        $innerDetails = $paymentDetails['payment_details'] ?? [];
+
+        // QR-ссылка для оплаты через СБП
+        $qrUrl = $innerDetails['nspk_qr'] ?? $innerDetails['number'] ?? '';
 
         return Payment::create([
             'user_id' => $user->id,
             'payment_system_id' => $this->getPaymentSystem()->id,
             'amount' => $amount,
             'status' => 'pending',
-            'payment_url' => '', // Для прямых платежей нет URL
+            'payment_url' => $qrUrl,
             'payment_id' => $data['invid'] ?? '',
             'payment_data' => [
                 'invid' => $data['invid'] ?? null,
-                'method' => $method,
-                'payment_details' => $paymentDetails,
-                'bank' => $paymentDetails['bank'] ?? null,
-                'fio' => $paymentDetails['payment_details']['fio'] ?? null,
-                'telefon' => $paymentDetails['payment_details']['telefon'] ?? null,
-                'nspk_qr' => $paymentDetails['payment_details']['nspk_qr'] ?? null,
+                'method' => 'nspk',
+                'nspk_qr' => $qrUrl,
+                'expire_at' => $paymentDetails['expire_at'] ?? null,
+                'amount_usdt' => $paymentDetails['amount_usdt'] ?? null,
+                'commission' => $paymentDetails['comission'] ?? null,
             ],
         ]);
     }
