@@ -174,15 +174,41 @@ const animateSelection = (selectRef) => {
 };
 
 const onMethodSelectOpen = async () => {
+    // Закрываем другой селект если открыт
+    if (isCurrencySelectOpen.value && currencySelect.value) {
+        isCurrencySelectOpen.value = false;
+    }
     isMethodSelectOpen.value = true;
     await nextTick();
     animateDropdown(methodSelect);
 };
 
+const onMethodSelectClose = () => {
+    isMethodSelectOpen.value = false;
+};
+
 const onCurrencySelectOpen = async () => {
+    // Закрываем другой селект если открыт
+    if (isMethodSelectOpen.value && methodSelect.value) {
+        isMethodSelectOpen.value = false;
+    }
     isCurrencySelectOpen.value = true;
     await nextTick();
     animateDropdown(currencySelect);
+};
+
+const onCurrencySelectClose = () => {
+    isCurrencySelectOpen.value = false;
+};
+
+// Закрыть все селекты при клике вне
+const closeAllSelects = (event) => {
+    // Проверяем, что клик был не по селекту
+    const isClickOnSelect = event?.target?.closest('.wallet-method-shell');
+    if (!isClickOnSelect) {
+        isMethodSelectOpen.value = false;
+        isCurrencySelectOpen.value = false;
+    }
 };
 
 const animateDropdown = (selectRef) => {
@@ -226,7 +252,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="flex flex-col gap-2.5">
+    <div class="flex flex-col gap-2.5" @click="closeAllSelects">
         <!-- Загрузка данных -->
         <div v-if="isDataLoading" class="flex flex-col gap-2.5">
             <div class="h-9 rounded-full bg-[#272727] animate-pulse" />
@@ -237,7 +263,7 @@ onMounted(() => {
 
         <template v-else>
             <!-- Метод оплаты -->
-            <div v-if="methods.length > 0" class="flex flex-col gap-1">
+            <div v-if="methods.length > 0" class="flex flex-col gap-1" @click.stop>
                 <h1 class="text-[10px] text-white">Метод оплаты:</h1>
                 <div
                     class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
@@ -251,9 +277,10 @@ onMounted(() => {
                         :clearable="false"
                         :searchable="false"
                         :append-to-body="false"
+                        :close-on-select="true"
                         class="wallet-method-select w-full p-1.5 pr-2.5"
                         @open="onMethodSelectOpen"
-                        @close="isMethodSelectOpen = false"
+                        @close="onMethodSelectClose"
                     >
                         <template #selected-option="slotProps">
                             <div class="flex items-center gap-2.5 text-xs text-white">
@@ -295,7 +322,7 @@ onMounted(() => {
             </div>
 
             <!-- Криптовалюта (только для CryptoPay) -->
-            <div v-if="isCryptoMethod && currencies.length > 0" class="flex flex-col gap-1">
+            <div v-if="isCryptoMethod && currencies.length > 0" class="flex flex-col gap-1" @click.stop>
                 <h1 class="text-[10px] text-white">Криптовалюта:</h1>
                 <div
                     class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
@@ -309,9 +336,10 @@ onMounted(() => {
                         :clearable="false"
                         :searchable="false"
                         :append-to-body="false"
+                        :close-on-select="true"
                         class="wallet-method-select w-full p-1.5 pr-2.5"
                         @open="onCurrencySelectOpen"
-                        @close="isCurrencySelectOpen = false"
+                        @close="onCurrencySelectClose"
                     >
                         <template #selected-option="slotProps">
                             <div class="flex items-center gap-2.5 text-xs text-white">
