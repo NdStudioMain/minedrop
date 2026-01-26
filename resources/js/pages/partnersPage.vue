@@ -177,11 +177,11 @@ const claimReferralBalance = async () => {
             </div>
             <div class="flex flex-col gap-1" data-animate>
                 <h1 class="text-[10px] text-white">Появились вопросы?</h1>
-                <button
-                    class="main-btn w-full rounded-[10px] py-2.5 text-[10px] text-white"
+                <a href="https://t.me/helpminedrop" target="_blank" rel="noopener noreferrer"
+                    class="main-btn w-full rounded-[10px] justify-center text-center py-2.5 text-[10px] text-white"
                 >
                     Написать в поддержку
-                </button>
+                </a>
             </div>
         </main>
     </Layout>

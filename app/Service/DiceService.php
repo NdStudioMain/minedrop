@@ -53,7 +53,7 @@ class DiceService
 
         if ($isWin) {
             $this->bankService->applyWin($bank, $winAmount);
-            $user->increment('balance', $winAmount - $bet);
+            $user->increment('balance', $winAmount + $bet);
         } else {
             $user->decrement('balance', $bet);
         }
