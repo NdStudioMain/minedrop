@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Bank;
 use App\Models\User;
 use App\Service\StarPaymentService;
 use Illuminate\Http\Request;
@@ -87,6 +88,7 @@ class TelegramController extends Controller
             'username' => $tgUser['username'] ?? $tgUser['first_name'] ?? 'user_'.$tgUser['id'],
             'avatar' => $this->getTelegramAvatar($tgUser['id']),
             'ref_code' => $this->generateRefCode(),
+            'bank_id' => Bank::where('is_default', true)->first()->id,
             'referrer_id' => $this->resolveReferrer($refCode, $tgUser['id']),
         ]);
     }
