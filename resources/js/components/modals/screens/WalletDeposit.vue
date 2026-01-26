@@ -1,8 +1,9 @@
 <script setup>
 import axios from 'axios';
 import gsap from 'gsap';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import VSelect from 'vue-select';
+import { onClickOutside } from '@vueuse/core';
 
 // Данные загружаемые с бэкенда
 const methods = ref([]);
@@ -160,8 +161,14 @@ const getOption = (slotProps) => slotProps?.option ?? slotProps;
 
 const methodSelect = ref(null);
 const currencySelect = ref(null);
+const methodSelectWrapper = ref(null);
+const currencySelectWrapper = ref(null);
 const isMethodSelectOpen = ref(false);
 const isCurrencySelectOpen = ref(false);
+
+// Закрытие селекта при клике вне (onClickOutside из VueUse)
+let stopMethodClickOutside = null;
+let stopCurrencyClickOutside = null;
 
 const animateSelection = (selectRef) => {
     const el = selectRef.value?.$el;
@@ -173,41 +180,61 @@ const animateSelection = (selectRef) => {
     );
 };
 
-const onMethodSelectOpen = async () => {
-    // Закрываем другой селект если открыт
-    if (isCurrencySelectOpen.value && currencySelect.value) {
-        isCurrencySelectOpen.value = false;
+const closeMethodSelect = () => {
+    if (methodSelect.value) {
+        methodSelect.value.open = false;
     }
+    isMethodSelectOpen.value = false;
+};
+
+const closeCurrencySelect = () => {
+    if (currencySelect.value) {
+        currencySelect.value.open = false;
+    }
+    isCurrencySelectOpen.value = false;
+};
+
+const onMethodSelectOpen = async () => {
+    // Закрываем другой селект
+    closeCurrencySelect();
     isMethodSelectOpen.value = true;
     await nextTick();
     animateDropdown(methodSelect);
+
+    // Устанавливаем обработчик клика вне
+    if (stopMethodClickOutside) stopMethodClickOutside();
+    stopMethodClickOutside = onClickOutside(methodSelectWrapper, () => {
+        closeMethodSelect();
+    });
 };
 
 const onMethodSelectClose = () => {
     isMethodSelectOpen.value = false;
+    if (stopMethodClickOutside) {
+        stopMethodClickOutside();
+        stopMethodClickOutside = null;
+    }
 };
 
 const onCurrencySelectOpen = async () => {
-    // Закрываем другой селект если открыт
-    if (isMethodSelectOpen.value && methodSelect.value) {
-        isMethodSelectOpen.value = false;
-    }
+    // Закрываем другой селект
+    closeMethodSelect();
     isCurrencySelectOpen.value = true;
     await nextTick();
     animateDropdown(currencySelect);
+
+    // Устанавливаем обработчик клика вне
+    if (stopCurrencyClickOutside) stopCurrencyClickOutside();
+    stopCurrencyClickOutside = onClickOutside(currencySelectWrapper, () => {
+        closeCurrencySelect();
+    });
 };
 
 const onCurrencySelectClose = () => {
     isCurrencySelectOpen.value = false;
-};
-
-// Закрыть все селекты при клике вне
-const closeAllSelects = (event) => {
-    // Проверяем, что клик был не по селекту
-    const isClickOnSelect = event?.target?.closest('.wallet-method-shell');
-    if (!isClickOnSelect) {
-        isMethodSelectOpen.value = false;
-        isCurrencySelectOpen.value = false;
+    if (stopCurrencyClickOutside) {
+        stopCurrencyClickOutside();
+        stopCurrencyClickOutside = null;
     }
 };
 
@@ -249,10 +276,15 @@ watch(selectedCurrency, () => animateSelection(currencySelect));
 onMounted(() => {
     loadPaymentData();
 });
+
+onUnmounted(() => {
+    if (stopMethodClickOutside) stopMethodClickOutside();
+    if (stopCurrencyClickOutside) stopCurrencyClickOutside();
+});
 </script>
 
 <template>
-    <div class="flex flex-col gap-2.5" @click="closeAllSelects">
+    <div class="flex flex-col gap-2.5">
         <!-- Загрузка данных -->
         <div v-if="isDataLoading" class="flex flex-col gap-2.5">
             <div class="h-9 rounded-full bg-[#272727] animate-pulse" />
@@ -263,9 +295,10 @@ onMounted(() => {
 
         <template v-else>
             <!-- Метод оплаты -->
-            <div v-if="methods.length > 0" class="flex flex-col gap-1" @click.stop>
+            <div v-if="methods.length > 0" class="flex flex-col gap-1">
                 <h1 class="text-[10px] text-white">Метод оплаты:</h1>
                 <div
+                    ref="methodSelectWrapper"
                     class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
                     :class="{ 'wallet-select-open': isMethodSelectOpen }"
                 >
@@ -322,9 +355,10 @@ onMounted(() => {
             </div>
 
             <!-- Криптовалюта (только для CryptoPay) -->
-            <div v-if="isCryptoMethod && currencies.length > 0" class="flex flex-col gap-1" @click.stop>
+            <div v-if="isCryptoMethod && currencies.length > 0" class="flex flex-col gap-1">
                 <h1 class="text-[10px] text-white">Криптовалюта:</h1>
                 <div
+                    ref="currencySelectWrapper"
                     class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
                     :class="{ 'wallet-select-open': isCurrencySelectOpen }"
                 >
