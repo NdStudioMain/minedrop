@@ -7,6 +7,7 @@ import VSelect from 'vue-select';
 // Данные загружаемые с бэкенда
 const methods = ref([]);
 const currencies = ref([]);
+const starsInfo = ref(null);
 const isDataLoading = ref(true);
 
 const selectedMethod = ref(null);
@@ -18,30 +19,37 @@ const errorMessage = ref('');
 // Проверка, выбран ли метод CryptoPay (криптовалюта)
 const isCryptoMethod = computed(() => selectedMethod.value?.code === 'crypto_pay');
 
+// Проверка, выбран ли метод Stars
+const isStarsMethod = computed(() => selectedMethod.value?.code === 'stars');
+
 // Загрузка методов и курсов с бэкенда
 const loadPaymentData = async () => {
     isDataLoading.value = true;
     try {
-        const response = await axios.get('/api/crypto-pay/methods');
-        if (response.data.success) {
+        const [methodsResponse, starsResponse] = await Promise.all([
+            axios.get('/api/crypto-pay/methods'),
+            axios.get('/api/stars/info'),
+        ]);
+
+        if (methodsResponse.data.success) {
             // Методы оплаты
-            methods.value = response.data.data.methods.map((m) => ({
+            methods.value = methodsResponse.data.data.methods.map((m) => ({
                 code: m.code,
                 label: m.name,
                 icon: m.icon || '/assets/img/cryptobot.png',
             }));
 
             // Криптовалюты с курсами
-            currencies.value = response.data.data.currencies.map((c) => ({
+            currencies.value = methodsResponse.data.data.currencies.map((c) => ({
                 code: c.code,
                 label: c.label,
                 rate_to_rub: c.rate_to_rub,
             }));
 
-            // По умолчанию выбираем НСПК если доступен
-            const nspkMethod = methods.value.find((m) => m.code === 'nspk');
-            if (nspkMethod) {
-                selectedMethod.value = nspkMethod;
+            // По умолчанию выбираем Stars если доступен
+            const starsMethod = methods.value.find((m) => m.code === 'stars');
+            if (starsMethod) {
+                selectedMethod.value = starsMethod;
             } else if (methods.value.length > 0) {
                 selectedMethod.value = methods.value[0];
             }
@@ -49,6 +57,10 @@ const loadPaymentData = async () => {
             if (currencies.value.length > 0) {
                 selectedCurrency.value = currencies.value[0];
             }
+        }
+
+        if (starsResponse.data.success) {
+            starsInfo.value = starsResponse.data.data;
         }
     } catch (error) {
         console.error('Ошибка загрузки методов оплаты:', error);
@@ -67,9 +79,25 @@ const cryptoAmount = computed(() => {
     return crypto.toFixed(8);
 });
 
+// Расчёт суммы в Stars
+const starsAmount = computed(() => {
+    if (!isStarsMethod.value || !starsInfo.value) return 0;
+    const amountNum = parseFloat(amount.value) || 0;
+    if (amountNum <= 0) return 0;
+    return Math.ceil(amountNum / starsInfo.value.rate);
+});
+
 // Лимиты суммы
-const minAmount = computed(() => 2000);
-const maxAmount = computed(() => (isCryptoMethod.value ? 1000000 : 100000));
+const minAmount = computed(() => {
+    if (isStarsMethod.value) return 50;
+    return 2000;
+});
+
+const maxAmount = computed(() => {
+    if (isStarsMethod.value) return 500000;
+    if (isCryptoMethod.value) return 1000000;
+    return 100000;
+});
 
 // Валидация
 const isValid = computed(() => {
@@ -335,12 +363,31 @@ onMounted(() => {
                     <span class="text-[#333333] text-[10px]">
                         {{ minAmount }} - {{ maxAmount.toLocaleString('ru-RU') }} ₽
                     </span>
+                    <!-- Сумма в крипте -->
                     <span
                         v-if="isCryptoMethod && amount && parseFloat(amount) > 0 && selectedCurrency"
                         class="text-[#6CA243] text-[10px]"
                     >
                         ≈ {{ cryptoAmount }} {{ selectedCurrency.code }}
                     </span>
+                    <!-- Сумма в Stars -->
+                    <span
+                        v-else-if="isStarsMethod && amount && parseFloat(amount) > 0"
+                        class="text-[#6CA243] text-[10px]"
+                    >
+                        ≈ {{ starsAmount }} ⭐
+                    </span>
+                </div>
+            </div>
+
+            <!-- Информация о Stars -->
+            <div
+                v-if="isStarsMethod && starsInfo"
+                class="rounded-lg bg-[#272727] p-2.5 text-[10px] text-[#666]"
+            >
+                <div class="flex items-center gap-1.5">
+                    <span>💡</span>
+                    <span>Курс: 1⭐ = {{ starsInfo.rate }}₽</span>
                 </div>
             </div>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Service\CryptoPayService;
 use App\Service\CrypturaService;
+use App\Service\StarPaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +14,8 @@ class PaymentController extends Controller
 {
     public function __construct(
         private CryptoPayService $cryptoPayService,
-        private CrypturaService $crypturaService
+        private CrypturaService $crypturaService,
+        private StarPaymentService $starPaymentService
     ) {}
 
     /**
@@ -22,8 +24,8 @@ class PaymentController extends Controller
     public function createPayment(Request $request): JsonResponse
     {
         $request->validate([
-            'method' => 'required|string|in:crypto_pay,nspk',
-            'amount' => 'required|numeric|min:2000',
+            'method' => 'required|string|in:crypto_pay,nspk,stars',
+            'amount' => 'required|numeric|min:50',
             'currency' => 'nullable|string', // Только для crypto_pay
         ]);
 
@@ -38,8 +40,34 @@ class PaymentController extends Controller
         ]);
 
         try {
-            if ($method === 'nspk') {
-                // Лимит для НСПК
+            if ($method === 'stars') {
+                // Telegram Stars — минимум 50₽
+                if ($amount > 500000) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Максимальная сумма для Stars — 500 000 ₽',
+                    ], 422);
+                }
+
+                $payment = $this->starPaymentService->createInvoice($user, $amount);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'payment_id' => $payment->id,
+                        'payment_url' => $payment->payment_url,
+                        'stars_amount' => $payment->payment_data['stars_amount'] ?? 0,
+                    ],
+                ]);
+            } elseif ($method === 'nspk') {
+                // Лимит для НСПК — минимум 2000₽
+                if ($amount < 2000) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Минимальная сумма для СБП — 2 000 ₽',
+                    ], 422);
+                }
+
                 if ($amount > 100000) {
                     return response()->json([
                         'success' => false,
@@ -49,10 +77,16 @@ class PaymentController extends Controller
 
                 $payment = $this->crypturaService->createPaymentWindow($user, $amount);
             } else {
-                // CryptoPay
+                // CryptoPay — минимум 2000₽
+                if ($amount < 2000) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Минимальная сумма для криптовалюты — 2 000 ₽',
+                    ], 422);
+                }
+
                 $currency = $request->input('currency', 'USDT');
 
-                // Лимит для крипты
                 if ($amount > 1000000) {
                     return response()->json([
                         'success' => false,
@@ -60,7 +94,6 @@ class PaymentController extends Controller
                     ], 422);
                 }
 
-                // Рассчитываем сумму в крипте
                 $cryptoAmount = $this->cryptoPayService->calculateCryptoAmount($currency, $amount);
 
                 if (! $cryptoAmount) {

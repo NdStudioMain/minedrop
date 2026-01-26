@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Service\StarPaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use App\Models\User;
 
 class TelegramController extends Controller
 {
@@ -16,14 +17,25 @@ class TelegramController extends Controller
         Log::info('Telegram webhook called');
 
         $update = json_decode(file_get_contents('php://input'), true);
-        if (!isset($update['message'])) {
+
+        // Обработка pre_checkout_query для Stars
+        if (isset($update['pre_checkout_query'])) {
+            return $this->handlePreCheckoutQuery($update['pre_checkout_query']);
+        }
+
+        // Обработка successful_payment для Stars
+        if (isset($update['message']['successful_payment'])) {
+            return $this->handleSuccessfulPayment($update['message']['successful_payment']);
+        }
+
+        if (! isset($update['message'])) {
             return response('ok');
         }
 
         $message = $update['message'];
-        $chatId  = $message['chat']['id'];
-        $tgUser  = $message['from'];
-        $text    = $message['text'] ?? '';
+        $chatId = $message['chat']['id'];
+        $tgUser = $message['from'];
+        $text = $message['text'] ?? '';
 
         if (str_starts_with($text, '/start')) {
             $refCode = $this->extractRefCode($text);
@@ -32,6 +44,32 @@ class TelegramController extends Controller
 
             $this->sendWelcome($chatId);
         }
+
+        return response('ok');
+    }
+
+    /**
+     * Обработка pre_checkout_query для Stars платежей
+     */
+    private function handlePreCheckoutQuery(array $preCheckoutQuery)
+    {
+        Log::info('Stars pre_checkout_query received', $preCheckoutQuery);
+
+        $starService = app(StarPaymentService::class);
+        $starService->handlePreCheckoutQuery($preCheckoutQuery);
+
+        return response('ok');
+    }
+
+    /**
+     * Обработка successful_payment для Stars платежей
+     */
+    private function handleSuccessfulPayment(array $successfulPayment)
+    {
+        Log::info('Stars successful_payment received', $successfulPayment);
+
+        $starService = app(StarPaymentService::class);
+        $starService->handleSuccessfulPayment($successfulPayment);
 
         return response('ok');
     }
@@ -45,23 +83,23 @@ class TelegramController extends Controller
         }
 
         return User::create([
-            'tg_id'        => $tgUser['id'],
-            'username'     => $tgUser['username'] ?? $tgUser['first_name'] ?? 'user_' . $tgUser['id'],
-            'avatar'       => $this->getTelegramAvatar($tgUser['id']),
-            'ref_code'     => $this->generateRefCode(),
-            'referrer_id' => $this->resolveReferrer($refCode, $tgUser['id'])
+            'tg_id' => $tgUser['id'],
+            'username' => $tgUser['username'] ?? $tgUser['first_name'] ?? 'user_'.$tgUser['id'],
+            'avatar' => $this->getTelegramAvatar($tgUser['id']),
+            'ref_code' => $this->generateRefCode(),
+            'referrer_id' => $this->resolveReferrer($refCode, $tgUser['id']),
         ]);
     }
 
     private function resolveReferrer(?string $refCode, int $tgId): ?int
     {
-        if (!$refCode) {
+        if (! $refCode) {
             return null;
         }
 
         $referrer = User::where('ref_code', $refCode)->first();
 
-        if (!$referrer) {
+        if (! $referrer) {
             return null;
         }
 
@@ -82,7 +120,7 @@ class TelegramController extends Controller
     private function generateRefCode(): string
     {
         do {
-            $code = 'md_' . strtoupper(Str::random(6));
+            $code = 'md_'.strtoupper(Str::random(6));
         } while (User::where('ref_code', $code)->exists());
 
         return $code;
@@ -94,7 +132,7 @@ class TelegramController extends Controller
 
         $photos = Http::get("https://api.telegram.org/bot{$token}/getUserProfilePhotos", [
             'user_id' => $tgId,
-            'limit'   => 1
+            'limit' => 1,
         ])->json();
 
         if (empty($photos['result']['photos'][0][0]['file_id'])) {
@@ -104,10 +142,10 @@ class TelegramController extends Controller
         $fileId = $photos['result']['photos'][0][0]['file_id'];
 
         $file = Http::get("https://api.telegram.org/bot{$token}/getFile", [
-            'file_id' => $fileId
+            'file_id' => $fileId,
         ])->json();
 
-        if (!isset($file['result']['file_path'])) {
+        if (! isset($file['result']['file_path'])) {
             return null;
         }
 
@@ -117,7 +155,7 @@ class TelegramController extends Controller
     private function sendWelcome(int $chatId): void
     {
         $response = Http::post(
-            "https://api.telegram.org/bot" . config('services.telegram.token') . "/sendPhoto",
+            'https://api.telegram.org/bot'.config('services.telegram.token').'/sendPhoto',
             [
                 'chat_id' => $chatId,
                 'photo' => 'https://ilove-youman.com/assets/img/start.jpg',
@@ -129,12 +167,12 @@ class TelegramController extends Controller
                             [
                                 'text' => '🎮 Играть',
                                 'web_app' => [
-                                    'url' => route('tg.auth')
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                                    'url' => route('tg.auth'),
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
             ]
         );
 
@@ -142,14 +180,14 @@ class TelegramController extends Controller
         if ($response->failed()) {
             Log::error('Failed to send Telegram welcome message', [
                 'chat_id' => $chatId,
-                'response' => $response->json()
+                'response' => $response->json(),
             ]);
         }
     }
 
     private function welcomeText(): string
     {
-        return <<<TEXT
+        return <<<'TEXT'
 <b>Добро пожаловать в @MineDrop</b> —
 ✨ популярную мини-игру в Telegram!
 

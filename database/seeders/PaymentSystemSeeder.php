@@ -14,6 +14,12 @@ class PaymentSystemSeeder extends Seeder
     {
         $systems = [
             [
+                'code' => 'stars',
+                'name' => 'Telegram Stars ⭐',
+                'icon' => '/assets/img/stars.webp',
+                'is_active' => true,
+            ],
+            [
                 'code' => 'crypto_pay',
                 'name' => 'CryptoPay (Telegram)',
                 'icon' => '/assets/img/cryptobot.png',
