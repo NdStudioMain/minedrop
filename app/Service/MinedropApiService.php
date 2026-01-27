@@ -67,18 +67,8 @@ class MinedropApiService
         ])->post($this->apiUrl . '/wallet/play', $data);
         if ($response->successful()) {
             $result = $response->json();
-            $apiMultiplier = $result['round']['payoutMultiplier'] ?? $multiplier;
-
-            // Ограничиваем коэффициент максимальным значением из банка
-            $apiMultiplier = min($apiMultiplier, $maxAllowedMultiplier);
-
-            // Обновляем multiplier в результате, если он был изменен
-            if (isset($result['round'])) {
-                $result['round']['payoutMultiplier'] = $apiMultiplier;
-            }
-
-            $win = $apiMultiplier * $bet;
-
+            $multiplier = $result['round']['payoutMultiplier'];
+            $win = $multiplier * $bet;
             if($request->mode == 'BONUS') {
                 $bankService->applyBet($bank, $bet * 100);
             }
@@ -97,7 +87,7 @@ class MinedropApiService
             }
             $this->user->balance += $win;
             $this->user->save();
-            return $result;
+            return $response->json();
         } else {
             throw new \Exception('Failed to play game: ' . $response->body());
         }
