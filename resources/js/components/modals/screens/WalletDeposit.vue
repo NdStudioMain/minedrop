@@ -297,62 +297,62 @@ onUnmounted(() => {
             <!-- Метод оплаты -->
             <div v-if="methods.length > 0" class="flex flex-col gap-1">
                 <h1 class="text-[10px] text-white">Метод оплаты:</h1>
-                <div
+            <div
                     ref="methodSelectWrapper"
-                    class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
+                class="wallet-method-shell relative flex items-center justify-between rounded-full bg-[#272727]"
                     :class="{ 'wallet-select-open': isMethodSelectOpen }"
-                >
-                    <VSelect
-                        ref="methodSelect"
-                        v-model="selectedMethod"
-                        :options="methods"
-                        label="label"
-                        :clearable="false"
-                        :searchable="false"
-                        :append-to-body="false"
+            >
+                <VSelect
+                    ref="methodSelect"
+                    v-model="selectedMethod"
+                    :options="methods"
+                    label="label"
+                    :clearable="false"
+                    :searchable="false"
+                    :append-to-body="false"
                         :close-on-select="true"
-                        class="wallet-method-select w-full p-1.5 pr-2.5"
+                    class="wallet-method-select w-full p-1.5 pr-2.5"
                         @open="onMethodSelectOpen"
                         @close="onMethodSelectClose"
-                    >
-                        <template #selected-option="slotProps">
-                            <div class="flex items-center gap-2.5 text-xs text-white">
-                                <img
-                                    :src="getOption(slotProps)?.icon"
-                                    class="size-6 rounded-full"
-                                    alt=""
-                                />
-                                {{ getOption(slotProps)?.label }}
-                            </div>
-                        </template>
+                >
+                    <template #selected-option="slotProps">
+                        <div class="flex items-center gap-2.5 text-xs text-white">
+                            <img
+                                :src="getOption(slotProps)?.icon"
+                                class="size-6 rounded-full"
+                                alt=""
+                            />
+                            {{ getOption(slotProps)?.label }}
+                        </div>
+                    </template>
 
-                        <template #option="slotProps">
-                            <div class="flex items-center gap-2.5 text-xs text-white">
-                                <img
-                                    :src="getOption(slotProps)?.icon"
-                                    class="size-6 rounded-full"
-                                    alt=""
-                                />
-                                {{ getOption(slotProps)?.label }}
-                            </div>
-                        </template>
+                    <template #option="slotProps">
+                        <div class="flex items-center gap-2.5 text-xs text-white">
+                            <img
+                                :src="getOption(slotProps)?.icon"
+                                class="size-6 rounded-full"
+                                alt=""
+                            />
+                            {{ getOption(slotProps)?.label }}
+                        </div>
+                    </template>
 
-                        <template #open-indicator>
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="size-3"
-                                viewBox="0 0 10 9"
-                                fill="none"
-                            >
-                                <path
-                                    d="M6.33312 7.5C5.56332 8.83333 3.63882 8.83333 2.86902 7.5L0.270947 3C-0.498854 1.66667 0.463398 2.00122e-08 2.003 -1.14584e-07L7.19915 -5.68846e-07C8.73875 -7.03442e-07 9.701 1.66667 8.9312 3L6.33312 7.5Z"
-                                    fill="#4E4E4E"
-                                />
-                            </svg>
-                        </template>
-                    </VSelect>
-                </div>
+                    <template #open-indicator>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="size-3"
+                            viewBox="0 0 10 9"
+                            fill="none"
+                        >
+                            <path
+                                d="M6.33312 7.5C5.56332 8.83333 3.63882 8.83333 2.86902 7.5L0.270947 3C-0.498854 1.66667 0.463398 2.00122e-08 2.003 -1.14584e-07L7.19915 -5.68846e-07C8.73875 -7.03442e-07 9.701 1.66667 8.9312 3L6.33312 7.5Z"
+                                fill="#4E4E4E"
+                            />
+                        </svg>
+                    </template>
+                </VSelect>
             </div>
+        </div>
 
             <!-- Криптовалюта (только для CryptoPay) -->
             <div v-if="isCryptoMethod && currencies.length > 0" class="flex flex-col gap-1">
@@ -411,18 +411,18 @@ onUnmounted(() => {
             </div>
 
             <!-- Сумма пополнения -->
-            <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1">
                 <h1 class="text-[10px] text-white">Сумма пополнения (RUB):</h1>
-                <input
+            <input
                     v-model="amount"
                     type="number"
                     class="rounded-full bg-[#272727] p-2.5 text-xs text-white outline-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                    placeholder="Введите сумму"
+                placeholder="Введите сумму"
                     :min="minAmount"
                     :max="maxAmount"
-                />
+            />
                 <div class="flex justify-between items-center">
-                    <span class="text-[#333333] text-[10px]">
+            <span class="text-[#333333] text-[10px]">
                         {{ minAmount }} - {{ maxAmount.toLocaleString('ru-RU') }} ₽
                     </span>
                     <!-- Сумма в крипте -->
@@ -438,7 +438,7 @@ onUnmounted(() => {
                         class="text-[#6CA243] text-[10px]"
                     >
                         ≈ {{ starsAmount }} ⭐
-                    </span>
+            </span>
                 </div>
             </div>
 
@@ -459,7 +459,7 @@ onUnmounted(() => {
                 class="rounded-lg bg-red-500/20 p-2 text-center text-xs text-red-400"
             >
                 {{ errorMessage }}
-            </div>
+        </div>
 
             <!-- Кнопка -->
             <button
@@ -486,7 +486,7 @@ onUnmounted(() => {
                     Создание...
                 </span>
                 <span v-else>Пополнить</span>
-            </button>
+        </button>
         </template>
     </div>
 </template>

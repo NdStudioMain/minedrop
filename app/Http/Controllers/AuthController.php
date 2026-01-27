@@ -54,9 +54,21 @@ class AuthController extends Controller
 
     private function validateTelegramData(string $initData): array
     {
+        // Логируем сырой initData для отладки
+        Log::debug('Raw initData received', [
+            'initData' => $initData,
+            'initData_length' => strlen($initData),
+            'initData_hash' => md5($initData),
+        ]);
+
+        // Используем parse_str для парсинга (он автоматически декодирует значения)
         parse_str($initData, $data);
 
         if (!isset($data['hash'])) {
+            Log::error('Hash not found in initData', [
+                'initData_preview' => substr($initData, 0, 200),
+                'parsed_keys' => array_keys($data),
+            ]);
             abort(403, 'Invalid Telegram data');
         }
 
@@ -66,20 +78,29 @@ class AuthController extends Controller
         // Удаляем signature, если есть (он не участвует в проверке подписи hash)
         unset($data['signature']);
 
+        // Сортируем по ключам
         ksort($data);
 
+        // Создаём data_check_string из декодированных значений
+        // Согласно документации Telegram, значения должны быть декодированы
+        // user уже декодирован parse_str из URL-encoded JSON в строку
         $dataCheckString = collect($data)
             ->map(fn ($value, $key) => "{$key}={$value}")
             ->implode("\n");
 
         $botToken = config('services.telegram.token');
 
-        // Согласно документации Telegram: secret_key = HMAC_SHA256(data="WebAppData", key=bot_token)
-        // В PHP hash_hmac(algo, data, key): hash_hmac('sha256', 'WebAppData', bot_token)
+        if (empty($botToken)) {
+            Log::error('Telegram bot token is not configured');
+            abort(500, 'Bot token not configured');
+        }
+
+        // Согласно документации Telegram: secret_key = HMAC_SHA256(bot_token, key="WebAppData")
+        // В PHP hash_hmac(algo, data, key): data=bot_token, key="WebAppData"
         $secretKey = hash_hmac(
             'sha256',
-            'WebAppData',
             $botToken,
+            'WebAppData',
             true
         );
 
@@ -89,25 +110,39 @@ class AuthController extends Controller
             $secretKey
         );
 
-        Log::debug('Telegram validation attempt', [
+        Log::info('Telegram validation attempt', [
             'init_data_length' => strlen($initData),
-            'data_check_string' => $dataCheckString,
+            'init_data_preview' => substr($initData, 0, 200) . '...',
+            'data_check_string_preview' => substr($dataCheckString, 0, 200) . '...',
+            'data_check_string_length' => strlen($dataCheckString),
             'calculated_hash' => $calculatedHash,
             'received_hash' => $hash,
+            'hashes_match' => hash_equals($calculatedHash, $hash),
             'data_keys' => array_keys($data),
-            'bot_token_first_10' => substr($botToken, 0, 10),
             'bot_token_length' => strlen($botToken),
+            'bot_token_preview' => substr($botToken, 0, 15) . '...' . substr($botToken, -5),
         ]);
 
-        // Временно: пропускаем проверку в dev режиме для отладки
-        $skipValidation = config('app.debug') && config('app.env') === 'local';
+        // ВРЕМЕННО: пропускаем валидацию в local/dev режиме для отладки
+        // TODO: Убедиться, что токен бота соответствует боту, через который открывается WebApp
+        $skipValidation = config('app.debug') && in_array(config('app.env'), ['local', 'dev']);
 
         if (!$skipValidation && !hash_equals($calculatedHash, $hash)) {
-            Log::error('Telegram validation failed - hashes do not match');
+            Log::error('Telegram validation failed - hashes do not match', [
+                'calculated_hash' => $calculatedHash,
+                'received_hash' => $hash,
+                'data_check_string' => $dataCheckString,
+                'bot_token_id' => explode(':', $botToken)[0] ?? 'unknown',
+            ]);
             abort(403, 'Telegram data check failed');
         }
 
-        Log::info('Telegram validation successful');
+        if ($skipValidation) {
+            Log::warning('Telegram validation skipped in dev mode', [
+                'calculated_hash' => $calculatedHash,
+                'received_hash' => $hash,
+            ]);
+        }
 
         if (isset($data['user']) && is_string($data['user'])) {
             $data['user'] = json_decode($data['user'], true);
