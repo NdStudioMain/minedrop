@@ -47,10 +47,12 @@ class MinedropApiService
 
         $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $bet);
 
+        // Ограничиваем максимальный множитель для BONUS режима
         if ($mode == 'BONUS') {
-            $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 3);
+            $maxBonusMultiplier = min($maxAllowedMultiplier, 500.0); // Максимум 500x для BONUS
+            $multiplier = $rngService->generateMultiplier(1.0, $maxBonusMultiplier, 3);
         } else {
-            $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
+            $multiplier = $rngService->generateMultiplier(1.0, $maxAllowedMultiplier, 50);
         }
 
 
@@ -67,8 +69,12 @@ class MinedropApiService
         ])->post($this->apiUrl . '/wallet/play', $data);
         if ($response->successful()) {
             $result = $response->json();
-            $multiplier = $result['round']['payoutMultiplier'];
-            $win = $multiplier * $bet;
+            // Используем наш сгенерированный множитель, ограниченный лимитами
+            $resultMultiplier = $result['round']['payoutMultiplier'] ?? $multiplier;
+            // Ограничиваем множитель из ответа нашим максимумом
+            $finalMultiplier = min($resultMultiplier, $mode == 'BONUS' ? 500.0 : $maxAllowedMultiplier);
+            $win = $finalMultiplier * $bet;
+            
             if($request->mode == 'BONUS') {
                 $bankService->applyBet($bank, $bet * 100);
             }
@@ -79,6 +85,7 @@ class MinedropApiService
                 $bankService->applyBet($bank, $bet);
             }
             $bankService->applyWin($bank, $win);
+            
             if($request->mode == 'BONUS') {
                 $this->user->balance -= $bet * 100;
             }
@@ -87,7 +94,13 @@ class MinedropApiService
             }
             $this->user->balance += $win;
             $this->user->save();
-            return $response->json();
+            
+            // Обновляем множитель в ответе нашим ограниченным значением
+            if (isset($result['round'])) {
+                $result['round']['payoutMultiplier'] = $finalMultiplier;
+            }
+            
+            return $result;
         } else {
             throw new \Exception('Failed to play game: ' . $response->body());
         }
