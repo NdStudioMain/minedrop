@@ -4,9 +4,11 @@ import { onBeforeUnmount, onMounted, ref, computed, watch } from 'vue';
 import Layout from '../layouts/layout.vue';
 import axios from 'axios';
 import { useAuthUser } from '@/composables/useAuthUser';
-import { minesStart, minesPick, minesCashout, minesMultipliers } from '@/actions/App/Http/Controllers/GameController';
+import { minesStart, minesPick, minesCashout, minesMultipliers, minesState } from '@/actions/App/Http/Controllers/GameController';
 
 const { user } = useAuthUser();
+
+const isLoading = ref(true);
 
 const pageRoot = ref(null);
 let pageCtx = null;
@@ -40,6 +42,30 @@ watch([betAmount, mineCount], () => {
         fetchMultipliers();
     }
 });
+
+const restoreState = async () => {
+    try {
+        const response = await axios.get(minesState.url());
+        const state = response.data.state;
+
+        if (state) {
+            gameStatus.value = state.status;
+            betAmount.value = state.bet;
+            mineCount.value = state.mineCount;
+            revealedCells.value = state.revealed;
+            multiplier.value = state.multiplier;
+            nextMultiplier.value = state.nextMultiplier;
+            multipliers.value = state.multipliers;
+        } else {
+            await fetchMultipliers();
+        }
+    } catch (error) {
+        console.error('Failed to restore state:', error);
+        await fetchMultipliers();
+    } finally {
+        isLoading.value = false;
+    }
+};
 
 const startGame = async () => {
     try {
@@ -102,7 +128,7 @@ const cashout = async () => {
 };
 
 onMounted(() => {
-    fetchMultipliers();
+    restoreState();
     pageCtx = gsap.context(() => {
         const items = gsap.utils.toArray('[data-animate]');
         if (items.length > 0) {
@@ -132,6 +158,12 @@ onBeforeUnmount(() => {
             ref="pageRoot"
             class="relative z-40 flex flex-col gap-4 pb-25 px-2.5 pt-4"
         >
+            <!-- Loading state -->
+            <div v-if="isLoading" class="flex items-center justify-center py-20">
+                <div class="h-8 w-8 animate-spin rounded-full border-4 border-white/20 border-t-white"></div>
+            </div>
+
+            <template v-else>
             <div class="flex flex-col gap-2.5" data-animate>
                 <div class="flex items-center justify-between" data-animate>
                     <h1 class="font-minecraft-ten text-2xl text-white">
@@ -275,6 +307,7 @@ onBeforeUnmount(() => {
                     Вы проиграли!
                 </div>
             </div>
+            </template>
         </main>
     </Layout>
 </template>

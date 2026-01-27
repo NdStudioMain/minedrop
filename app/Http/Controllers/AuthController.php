@@ -12,6 +12,9 @@ class AuthController extends Controller
 {
     public function login(Request $r) {
         if (!$r->has('initData')) {
+            if ($r->wantsJson()) {
+                return response()->json(['success' => false, 'error' => 'No initData'], 400);
+            }
             return redirect('https://t.me/MineDropBot');
         }
         $data = $this->validateTelegramData($r->get('initData'));
@@ -24,17 +27,24 @@ class AuthController extends Controller
             $user = User::create([
                 'tg_id' => $tgId,
                 'name' => $data['user']['first_name'],
-                'username' => $data['user']['username'],
-                'avatar' => $data['user']['photo_url'],
+                'username' => $data['user']['username'] ?? null,
+                'avatar' => $data['user']['photo_url'] ?? null,
                 'bank_id' => Bank::where('is_default', true)->first()->id,
             ]);
-            // abort(403, 'User not registered');
         }
-        if($user->avatar == null) {
+        if ($user->avatar == null && isset($data['user']['photo_url'])) {
             $user->avatar = $data['user']['photo_url'];
             $user->save();
         }
         Auth::login($user, true);
+
+        if ($r->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'redirect' => route('home'),
+            ]);
+        }
+
         return redirect()->route('home');
     }
     public function loginRedirect() {

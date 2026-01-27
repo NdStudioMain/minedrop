@@ -11,17 +11,24 @@ onMounted(() => {
     const initData = window.Telegram.WebApp.initData
 
     if (!initData) {
-        toast.error('Telegram initData не найден')
+        console.error('Telegram initData не найден')
         return
     }
 
     axios.post('/tg/auth/login', {
         initData: initData
-    }).then(() => {
-        window.location.href = '/'
+    }, {
+        withCredentials: true,
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    }).then((response) => {
+        if (response.data.success) {
+            window.location.href = response.data.redirect || '/'
+        }
     }).catch((e) => {
         console.error(e)
-        toast.error('Ошибка авторизации')
     })
 })
 </script>

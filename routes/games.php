@@ -18,6 +18,7 @@ Route::get('mines', function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('dice/play', [GameController::class, 'dicePlay'])->name('dice.play');
+    Route::get('mines/state', [GameController::class, 'minesState'])->name('mines.state');
     Route::post('mines/start', [GameController::class, 'minesStart'])->name('mines.start');
     Route::post('mines/pick', [GameController::class, 'minesPick'])->name('mines.pick');
     Route::post('mines/cashout', [GameController::class, 'minesCashout'])->name('mines.cashout');

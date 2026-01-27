@@ -8,6 +8,11 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createVfm } from 'vue-final-modal';
 import { createApp, h } from 'vue';
 import { toast } from './lib/toast';
+import axios from 'axios';
+
+// Configure axios globally
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

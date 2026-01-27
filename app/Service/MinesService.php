@@ -20,12 +20,13 @@ class MinesService
             throw new \Exception('Insufficient balance');
         }
 
-        // Delete any existing active game for this user
-        MinesGame::where('user_id', $user->id)
+        $isGame = MinesGame::where('user_id', $user->id)
             ->where('status', 'playing')
-            ->delete();
+            ->first();
+        if ($isGame) {
+            throw new \Exception('Игра уже начата');
+        }
 
-        // Generate mines
         $cells = range(0, 24);
         shuffle($cells);
         $mines = array_slice($cells, 0, $mineCount);
@@ -117,38 +118,70 @@ class MinesService
         ];
     }
 
-    public function cashout(User $user)
+    public function getState(User $user): ?array
     {
         $minesGame = MinesGame::where('user_id', $user->id)
             ->where('status', 'playing')
             ->first();
 
-        if (!$minesGame || $minesGame->step === 0) {
-            throw new \Exception('Cannot cashout');
+        if (!$minesGame) {
+            return null;
         }
-
-        $multiplier = $this->calculateMultiplier($minesGame->mine_count, $minesGame->step);
 
         $game = Games::where('id_game', 'mines')->first();
         $bank = $game ? $game->bank : Bank::first();
-        $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, (float) $minesGame->bet);
-        $multiplier = min($multiplier, $maxMultiplier);
 
-        $winAmount = $minesGame->bet * $multiplier;
-
-        $this->bankService->applyWin($bank, $winAmount);
-        $user->increment('balance', $winAmount);
-
-        $mines = $minesGame->mines;
-        $minesGame->update(['status' => 'won']);
+        $multiplier = $minesGame->step > 0
+            ? $this->calculateMultiplier($minesGame->mine_count, $minesGame->step)
+            : 0;
 
         return [
-            'status' => 'won',
-            'winAmount' => round($winAmount, 2),
+            'status' => 'playing',
+            'bet' => (float) $minesGame->bet,
+            'mineCount' => $minesGame->mine_count,
+            'revealed' => $minesGame->revealed ?? [],
+            'step' => $minesGame->step,
             'multiplier' => round($multiplier, 2),
-            'mines' => $mines,
-            'newBalance' => round($user->fresh()->balance, 2),
+            'nextMultiplier' => $this->calculateMultiplier($minesGame->mine_count, $minesGame->step + 1),
+            'multipliers' => $this->getAllMultipliers($bank, (float) $minesGame->bet, $minesGame->mine_count),
         ];
+    }
+
+    public function cashout(User $user)
+    {
+        return \DB::transaction(function () use ($user) {
+            $minesGame = MinesGame::where('user_id', $user->id)
+                ->where('status', 'playing')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$minesGame || $minesGame->step === 0) {
+                throw new \Exception('Cannot cashout');
+            }
+
+            $multiplier = $this->calculateMultiplier($minesGame->mine_count, $minesGame->step);
+
+            $game = Games::where('id_game', 'mines')->first();
+            $bank = $game ? $game->bank : Bank::first();
+            $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, (float) $minesGame->bet);
+            $multiplier = min($multiplier, $maxMultiplier);
+
+            $winAmount = $minesGame->bet * $multiplier;
+
+            $this->bankService->applyWin($bank, $winAmount);
+            $user->increment('balance', $winAmount);
+
+            $mines = $minesGame->mines;
+            $minesGame->update(['status' => 'won']);
+
+            return [
+                'status' => 'won',
+                'winAmount' => round($winAmount, 2),
+                'multiplier' => round($multiplier, 2),
+                'mines' => $mines,
+                'newBalance' => round($user->fresh()->balance, 2),
+            ];
+        });
     }
 
     private function calculateMultiplier(int $mines, int $step): float

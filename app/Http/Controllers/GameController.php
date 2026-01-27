@@ -79,6 +79,16 @@ class GameController extends Controller
         }
     }
 
+    public function minesState(Request $request)
+    {
+        try {
+            $state = $this->minesService->getState($request->user());
+            return response()->json(['state' => $state]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
     public function minesMultipliers(Request $request)
     {
         $request->validate([
