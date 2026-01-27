@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Bank;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use Inertia\Inertia;
 
@@ -62,6 +63,9 @@ class AuthController extends Controller
         $hash = $data['hash'];
         unset($data['hash']);
 
+        // Удаляем signature, если есть (он не участвует в проверке подписи hash)
+        unset($data['signature']);
+
         ksort($data);
 
         $dataCheckString = collect($data)
@@ -70,7 +74,7 @@ class AuthController extends Controller
 
         $secretKey = hash_hmac(
             'sha256',
-            env('TELEGRAM_TOKEN'),
+            config('services.telegram.token'),
             'WebAppData',
             true
         );
@@ -82,6 +86,12 @@ class AuthController extends Controller
         );
 
         if (!hash_equals($calculatedHash, $hash)) {
+            Log::error('Telegram validation failed', [
+                'data_check_string' => $dataCheckString,
+                'calculated_hash' => $calculatedHash,
+                'received_hash' => $hash,
+                'data_keys' => array_keys($data),
+            ]);
             abort(403, 'Telegram data check failed');
         }
 
