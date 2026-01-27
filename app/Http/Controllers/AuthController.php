@@ -14,7 +14,7 @@ class AuthController extends Controller
     public function login(Request $r) {
         // Получаем initData из JSON или query параметров
         $initData = $r->input('initData') ?? $r->get('initData');
-        
+
         if (!$initData) {
             Log::error('No initData in request', [
                 'request_data' => $r->all(),
@@ -25,7 +25,7 @@ class AuthController extends Controller
             }
             return redirect('https://t.me/MineDropBot');
         }
-        
+
         try {
             $data = $this->validateTelegramData($initData);
         } catch (\Exception $e) {
@@ -73,6 +73,7 @@ class AuthController extends Controller
 
     private function validateTelegramData(string $initData): array
     {
+        // Парсим данные для получения значений
         parse_str($initData, $data);
 
         if (!isset($data['hash'])) {
@@ -84,14 +85,26 @@ class AuthController extends Controller
         }
 
         $hash = $data['hash'];
-        unset($data['hash']);
 
-        // Удаляем signature, если есть (он не участвует в проверке подписи hash)
-        unset($data['signature']);
+        // Для проверки подписи нужно использовать оригинальные URL-encoded значения
+        // Разбиваем initData на пары key=value
+        $pairs = [];
+        foreach (explode('&', $initData) as $pair) {
+            if (strpos($pair, '=') === false) {
+                continue;
+            }
+            [$key, $value] = explode('=', $pair, 2);
+            // Пропускаем hash и signature
+            if ($key !== 'hash' && $key !== 'signature') {
+                $pairs[$key] = $value;
+            }
+        }
 
-        ksort($data);
+        // Сортируем по ключам
+        ksort($pairs);
 
-        $dataCheckString = collect($data)
+        // Формируем data_check_string из оригинальных URL-encoded значений
+        $dataCheckString = collect($pairs)
             ->map(fn ($value, $key) => "{$key}={$value}")
             ->implode("\n");
 
