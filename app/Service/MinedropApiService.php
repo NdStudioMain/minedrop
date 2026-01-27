@@ -48,7 +48,7 @@ class MinedropApiService
         $maxAllowedMultiplier = $bankService->getMaxAllowedMultiplier($bank, $bet);
 
         if ($mode == 'BONUS') {
-            $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
+            $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 3);
         } else {
             $multiplier = $rngService->generateMultiplier(0, $maxAllowedMultiplier, 50);
         }
