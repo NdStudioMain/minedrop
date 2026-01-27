@@ -43,7 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::post('check/subscriptions', [BonusController::class, 'checkSubscriptions'])->name('bonus.check-subscriptions');
     Route::post('referral/claim', [ReferralController::class, 'claim'])->name('referral.claim');
 
-    // Единый эндпоинт для создания платежа
+
     Route::post('/api/payment', [PaymentController::class, 'createPayment'])->name('payment.create');
 
     // CryptoPay роуты
