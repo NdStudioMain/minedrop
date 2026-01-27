@@ -18,19 +18,17 @@ const result = ref(null);
 const isRolling = ref(false);
 
 const multiplier = computed(() => {
-    // Формула: payout = 99 / chance (house edge 1%)
     return (99.0 / chance.value).toFixed(4);
 });
 
 const isDragging = ref(false);
 const isTypeChanging = ref(false);
 
-// Отслеживаем изменение type и временно отключаем transition
 watch(type, () => {
     isTypeChanging.value = true;
     setTimeout(() => {
         isTypeChanging.value = false;
-    }, 50); // Небольшая задержка чтобы transition успел отключиться
+    }, 50);
 });
 
 const greenStyle = computed(() => ({
@@ -51,7 +49,6 @@ const rollDice = async () => {
             type: type.value
         });
 
-        // Add a small delay for animation effect
         setTimeout(() => {
             result.value = response.data;
             user.value.balance = response.data.newBalance;

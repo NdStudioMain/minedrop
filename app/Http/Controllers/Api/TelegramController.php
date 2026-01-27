@@ -19,12 +19,10 @@ class TelegramController extends Controller
 
         $update = json_decode(file_get_contents('php://input'), true);
 
-        // Обработка pre_checkout_query для Stars
         if (isset($update['pre_checkout_query'])) {
             return $this->handlePreCheckoutQuery($update['pre_checkout_query']);
         }
 
-        // Обработка successful_payment для Stars
         if (isset($update['message']['successful_payment'])) {
             return $this->handleSuccessfulPayment($update['message']['successful_payment']);
         }

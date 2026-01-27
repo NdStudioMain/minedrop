@@ -27,7 +27,7 @@ class DiceService
         }
 
 
-        // Формула: payout = 99 / chance (house edge 1%)
+
         $multiplier = 99.0 / $chance;
 
         $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, $bet);
@@ -35,11 +35,11 @@ class DiceService
 
         $winAmount = $bet * $multiplier;
 
-        // 2. Generate roll
+
         $roll = $this->rngService->randomFloatBetween(0, 99.99);
         $roll = round($roll, 2);
 
-        // 3. Determine if win
+
         $isWin = false;
         if ($type === 'over') {
             $isWin = $roll > (100 - $chance);

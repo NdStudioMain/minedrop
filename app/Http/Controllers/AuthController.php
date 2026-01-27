@@ -12,7 +12,7 @@ use Inertia\Inertia;
 class AuthController extends Controller
 {
     public function login(Request $r) {
-        // Получаем initData из JSON или query параметров
+
         $initData = $r->input('initData') ?? $r->get('initData');
 
         if (!$initData) {
@@ -73,7 +73,7 @@ class AuthController extends Controller
 
     private function validateTelegramData(string $initData): array
     {
-        // Парсим данные для получения значений
+
         parse_str($initData, $data);
 
         if (!isset($data['hash'])) {
@@ -86,24 +86,28 @@ class AuthController extends Controller
 
         $hash = $data['hash'];
 
-        // Для проверки подписи нужно использовать оригинальные URL-encoded значения
-        // Разбиваем initData на пары key=value
+
+
+        // Извлекаем пары key=value из оригинальной строки
         $pairs = [];
         foreach (explode('&', $initData) as $pair) {
             if (strpos($pair, '=') === false) {
                 continue;
             }
             [$key, $value] = explode('=', $pair, 2);
+            // URL декодируем только ключ, значение оставляем как есть (URL-encoded)
+            $key = urldecode($key);
+
             // Пропускаем hash и signature
             if ($key !== 'hash' && $key !== 'signature') {
-                $pairs[$key] = $value;
+                $pairs[$key] = $value; // Значение остается URL-encoded
             }
         }
 
-        // Сортируем по ключам
+        // Сортируем по ключам (алфавитно)
         ksort($pairs);
 
-        // Формируем data_check_string из оригинальных URL-encoded значений
+        // Формируем data_check_string: key=value\nkey=value
         $dataCheckString = collect($pairs)
             ->map(fn ($value, $key) => "{$key}={$value}")
             ->implode("\n");
@@ -114,10 +118,12 @@ class AuthController extends Controller
             abort(500, 'Telegram bot token not configured');
         }
 
+        // Согласно документации Telegram: secret_key = HMAC_SHA256("WebAppData", bot_token)
+        // В PHP: hash_hmac(algo, data, key) = HMAC_SHA256(data, key)
         $secretKey = hash_hmac(
             'sha256',
-            $botToken,
             'WebAppData',
+            $botToken,
             true
         );
 
@@ -130,11 +136,14 @@ class AuthController extends Controller
         if (!hash_equals($calculatedHash, $hash)) {
             Log::error('Telegram validation failed', [
                 'data_check_string' => $dataCheckString,
+                'data_check_string_hex' => bin2hex($dataCheckString),
                 'calculated_hash' => $calculatedHash,
                 'received_hash' => $hash,
-                'data_keys' => array_keys($data),
+                'pairs_keys' => array_keys($pairs),
+                'pairs_values_preview' => array_map(fn($v) => substr($v, 0, 50), $pairs),
                 'bot_token_length' => strlen($botToken),
                 'bot_token_preview' => substr($botToken, 0, 10) . '...',
+                'init_data_preview' => substr($initData, 0, 200),
             ]);
             abort(403, 'Telegram data check failed');
         }

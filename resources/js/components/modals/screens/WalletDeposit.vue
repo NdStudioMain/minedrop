@@ -5,7 +5,6 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import VSelect from 'vue-select';
 import { onClickOutside } from '@vueuse/core';
 
-// Данные загружаемые с бэкенда
 const methods = ref([]);
 const currencies = ref([]);
 const starsInfo = ref(null);
@@ -17,13 +16,13 @@ const amount = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
 
-// Проверка, выбран ли метод CryptoPay (криптовалюта)
+
 const isCryptoMethod = computed(() => selectedMethod.value?.code === 'crypto_pay');
 
-// Проверка, выбран ли метод Stars
+
 const isStarsMethod = computed(() => selectedMethod.value?.code === 'stars');
 
-// Загрузка методов и курсов с бэкенда
+
 const loadPaymentData = async () => {
     isDataLoading.value = true;
     try {
@@ -33,21 +32,21 @@ const loadPaymentData = async () => {
         ]);
 
         if (methodsResponse.data.success) {
-            // Методы оплаты
+
             methods.value = methodsResponse.data.data.methods.map((m) => ({
                 code: m.code,
                 label: m.name,
                 icon: m.icon || '/assets/img/cryptobot.png',
             }));
 
-            // Криптовалюты с курсами
+
             currencies.value = methodsResponse.data.data.currencies.map((c) => ({
                 code: c.code,
                 label: c.label,
                 rate_to_rub: c.rate_to_rub,
             }));
 
-            // По умолчанию выбираем Stars если доступен
+
             const starsMethod = methods.value.find((m) => m.code === 'stars');
             if (starsMethod) {
                 selectedMethod.value = starsMethod;
@@ -71,7 +70,7 @@ const loadPaymentData = async () => {
     }
 };
 
-// Расчёт суммы в крипте
+
 const cryptoAmount = computed(() => {
     if (!isCryptoMethod.value) return '0';
     const amountNum = parseFloat(amount.value) || 0;
@@ -80,7 +79,7 @@ const cryptoAmount = computed(() => {
     return crypto.toFixed(8);
 });
 
-// Расчёт суммы в Stars
+
 const starsAmount = computed(() => {
     if (!isStarsMethod.value || !starsInfo.value) return 0;
     const amountNum = parseFloat(amount.value) || 0;
@@ -88,7 +87,7 @@ const starsAmount = computed(() => {
     return Math.ceil(amountNum / starsInfo.value.rate);
 });
 
-// Лимиты суммы
+
 const minAmount = computed(() => {
     if (isStarsMethod.value) return 50;
     return 2000;
@@ -100,7 +99,7 @@ const maxAmount = computed(() => {
     return 100000;
 });
 
-// Валидация
+
 const isValid = computed(() => {
     const amountNum = parseFloat(amount.value) || 0;
     if (amountNum < minAmount.value || amountNum > maxAmount.value) return false;
@@ -109,7 +108,7 @@ const isValid = computed(() => {
     return true;
 });
 
-// Отправка формы — ОДИН запрос на бэкенд
+
 const submitDeposit = async () => {
     if (!isValid.value || isLoading.value) return;
 
@@ -122,7 +121,7 @@ const submitDeposit = async () => {
             amount: parseFloat(amount.value),
         };
 
-        // Для крипты добавляем валюту
+
         if (isCryptoMethod.value && selectedCurrency.value) {
             payload.currency = selectedCurrency.value.code;
         }
@@ -166,7 +165,7 @@ const currencySelectWrapper = ref(null);
 const isMethodSelectOpen = ref(false);
 const isCurrencySelectOpen = ref(false);
 
-// Закрытие селекта при клике вне (onClickOutside из VueUse)
+
 let stopMethodClickOutside = null;
 let stopCurrencyClickOutside = null;
 
@@ -195,13 +194,13 @@ const closeCurrencySelect = () => {
 };
 
 const onMethodSelectOpen = async () => {
-    // Закрываем другой селект
+
     closeCurrencySelect();
     isMethodSelectOpen.value = true;
     await nextTick();
     animateDropdown(methodSelect);
 
-    // Устанавливаем обработчик клика вне
+
     if (stopMethodClickOutside) stopMethodClickOutside();
     stopMethodClickOutside = onClickOutside(methodSelectWrapper, () => {
         closeMethodSelect();
@@ -217,13 +216,12 @@ const onMethodSelectClose = () => {
 };
 
 const onCurrencySelectOpen = async () => {
-    // Закрываем другой селект
+
     closeMethodSelect();
     isCurrencySelectOpen.value = true;
     await nextTick();
     animateDropdown(currencySelect);
 
-    // Устанавливаем обработчик клика вне
     if (stopCurrencyClickOutside) stopCurrencyClickOutside();
     stopCurrencyClickOutside = onClickOutside(currencySelectWrapper, () => {
         closeCurrencySelect();
@@ -339,7 +337,7 @@ onUnmounted(() => {
 
                         <template #open-indicator>
                             <svg
-                                xmlns="http://www.w3.org/2000/svg"
+                                xmlns="http:
                                 class="size-3"
                                 viewBox="0 0 10 9"
                                 fill="none"
@@ -395,7 +393,7 @@ onUnmounted(() => {
 
                         <template #open-indicator>
                             <svg
-                                xmlns="http://www.w3.org/2000/svg"
+                                xmlns="http:
                                 class="size-3"
                                 viewBox="0 0 10 9"
                                 fill="none"

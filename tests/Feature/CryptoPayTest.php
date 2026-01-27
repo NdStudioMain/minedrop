@@ -8,13 +8,11 @@ use App\Service\CryptoPayService;
 use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
-    // Создаём платёжную систему CryptoPay
     PaymentSystem::factory()->create([
         'code' => 'crypto_pay',
         'name' => 'CryptoPay (Telegram)',
     ]);
 
-    // Мокаем CryptoPayService по умолчанию для всех тестов
     $this->mock(CryptoPayService::class, function ($mock) {
         $mock->shouldReceive('getPaymentSystem')->andReturn(
             PaymentSystem::where('code', 'crypto_pay')->first()
@@ -48,7 +46,7 @@ describe('создание инвойса', function () {
         actingAs($user)
             ->postJson('/api/crypto-pay/invoice', [
                 'currency' => 'TON',
-                'amount_rub' => 50, // меньше минимума 100
+                'amount_rub' => 50,
                 'crypto_amount' => 0.5,
             ])
             ->assertUnprocessable()
@@ -225,7 +223,6 @@ describe('зачисление средств', function () {
             'status' => 'pending',
         ]);
 
-        // Тестируем напрямую метод completePayment через мок
         $mockService = Mockery::mock(CryptoPayService::class)->makePartial();
         $this->app->instance(CryptoPayService::class, $mockService);
 
@@ -251,7 +248,6 @@ describe('список платежей', function () {
             'payment_system_id' => $paymentSystem->id,
         ]);
 
-        // Платёж другого пользователя
         Payment::factory()->create([
             'payment_system_id' => $paymentSystem->id,
         ]);
@@ -265,7 +261,6 @@ describe('список платежей', function () {
 
 describe('тест для конкретного пользователя', function () {
     it('зачисляет баланс пользователю с tg_id 6424102837', function () {
-        // Получаем или создаём пользователя
         $user = User::updateOrCreate(
             ['tg_id' => 6424102837],
             [
@@ -287,7 +282,6 @@ describe('тест для конкретного пользователя', func
 
         $initialBalance = (float) $user->balance;
 
-        // Тестируем напрямую метод completePayment через мок
         $mockService = Mockery::mock(CryptoPayService::class)->makePartial();
         $this->app->instance(CryptoPayService::class, $mockService);
 

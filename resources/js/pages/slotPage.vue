@@ -26,7 +26,6 @@
     let pageCtx = null;
     let balanceUpdateInterval = null;
 
-    // Функция для обновления баланса
     const updateBalance = () => {
         router.reload({
             only: ['auth'],
@@ -35,19 +34,16 @@
         });
     };
 
-    // Обработчик нажатия кнопки "назад" в Telegram WebApp
     const handleBackButton = () => {
         router.visit('/');
     };
 
     onMounted(() => {
-        // Показываем кнопку "назад" в Telegram WebApp
         if (window.Telegram?.WebApp?.BackButton) {
             window.Telegram.WebApp.BackButton.show();
             window.Telegram.WebApp.BackButton.onClick(handleBackButton);
         }
 
-        // Обновляем баланс каждую секунду
         balanceUpdateInterval = setInterval(() => {
             updateBalance();
         }, 1000);
@@ -82,13 +78,11 @@
     });
 
     onBeforeUnmount(() => {
-        // Скрываем кнопку "назад" и убираем обработчик
         if (window.Telegram?.WebApp?.BackButton) {
             window.Telegram.WebApp.BackButton.offClick(handleBackButton);
             window.Telegram.WebApp.BackButton.hide();
         }
 
-        // Очищаем интервал
         if (balanceUpdateInterval) {
             clearInterval(balanceUpdateInterval);
             balanceUpdateInterval = null;

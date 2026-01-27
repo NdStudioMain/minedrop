@@ -19,7 +19,6 @@ const successMessage = ref('');
 const MIN_AMOUNT = 2000;
 const MAX_AMOUNT = 100000;
 
-// Валидация
 const isValid = computed(() => {
     const amountNum = parseFloat(amount.value) || 0;
     if (amountNum < MIN_AMOUNT || amountNum > MAX_AMOUNT) return false;
@@ -27,17 +26,14 @@ const isValid = computed(() => {
     return true;
 });
 
-// Плейсхолдер для поля ввода
 const cardPlaceholder = computed(() => {
     return selectedMethod.value?.code === 'sbp' ? 'Номер телефона (79...' : 'Номер карты';
 });
 
-// Лейбл для поля ввода
 const cardLabel = computed(() => {
     return selectedMethod.value?.code === 'sbp' ? 'Номер телефона:' : 'Номер карты:';
 });
 
-// Отправка заявки
 const submitWithdraw = async () => {
     if (!isValid.value || isLoading.value) return;
 
@@ -55,7 +51,6 @@ const submitWithdraw = async () => {
 
         if (response.data.success) {
             successMessage.value = 'Заявка создана! Ожидайте выплату.';
-            // Очищаем форму
             amount.value = '';
             cardNumber.value = '';
             bankName.value = '';
@@ -136,7 +131,6 @@ const onSelectClose = () => {
 
 watch(selectedMethod, () => {
     animateSelection();
-    // Очищаем поле при смене метода
     cardNumber.value = '';
 });
 </script>

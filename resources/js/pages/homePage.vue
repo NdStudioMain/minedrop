@@ -57,7 +57,6 @@ const onSlideChange = (s) => {
 };
 
 const onAutoplayTimeLeft = (_, timeLeftMs) => {
-    // Always compute elapsed progress (0..1) from timeLeft to avoid direction confusion.
     const elapsed = (autoplayDelayMs - timeLeftMs) / autoplayDelayMs;
     activeProgress.value = Math.max(0, Math.min(1, elapsed));
 };
@@ -73,7 +72,6 @@ const goTo = (index) => {
 const indicators = computed(() =>
     Array.from({ length: slides.length }, (_, i) => ({
         i,
-        // stories-like progress: previous = 1, active = progress, next = 0
         progress:
             i < activeIndex.value
                 ? 1

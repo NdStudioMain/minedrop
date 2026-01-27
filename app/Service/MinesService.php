@@ -31,14 +31,14 @@ class MinesService
         shuffle($cells);
         $mines = array_slice($cells, 0, $mineCount);
 
-        // Deduct bet immediately
+
         $user->decrement('balance', $bet);
 
         $game = Games::where('id_game', 'mines')->first();
         $bank = $game ? $game->bank : Bank::first();
         $this->bankService->applyBet($bank, $bet);
 
-        // Create game record in database
+
         $minesGame = MinesGame::create([
             'user_id' => $user->id,
             'bet' => $bet,
@@ -74,7 +74,7 @@ class MinesService
         }
 
         if (in_array($cellId, $minesGame->mines)) {
-            // Hit a mine!
+
             $minesGame->update([
                 'status' => 'lost',
                 'revealed' => array_merge($minesGame->revealed ?? [], [$cellId]),
@@ -94,7 +94,7 @@ class MinesService
 
         $multiplier = $this->calculateMultiplier($minesGame->mine_count, $step);
 
-        // Check bank limit
+
         $game = Games::where('id_game', 'mines')->first();
         $bank = $game ? $game->bank : Bank::first();
         $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, (float) $minesGame->bet);
@@ -197,7 +197,7 @@ class MinesService
 
         $multiplier = 1 / $p;
 
-        // Apply house edge (5%)
+
         $multiplier *= 0.95;
 
         return round($multiplier, 2);

@@ -13,7 +13,7 @@ class StarPaymentService
 {
     private string $botToken;
 
-    private string $apiUrl = 'https://api.telegram.org/bot';
+    private string $apiUrl = 'https:
 
     public function __construct()
     {
@@ -28,7 +28,7 @@ class StarPaymentService
         $starsRate = Setting::getStarsRate();
         $starsAmount = (int) ceil($amountRub / $starsRate);
 
-        // Минимум 1 Star
+
         if ($starsAmount < 1) {
             $starsAmount = 1;
         }
@@ -39,7 +39,7 @@ class StarPaymentService
             throw new \Exception('Платёжная система Stars не найдена');
         }
 
-        // Создаём запись о платеже
+
         $payment = Payment::create([
             'user_id' => $user->id,
             'payment_system_id' => $paymentSystem->id,
@@ -52,7 +52,7 @@ class StarPaymentService
             ],
         ]);
 
-        // Создаём ссылку на инвойс через Telegram API
+
         $invoiceLink = $this->createInvoiceLink($payment, $starsAmount);
 
         $payment->update([
@@ -134,7 +134,7 @@ class StarPaymentService
                 return false;
             }
 
-            // Всё ок, подтверждаем
+
             $this->answerPreCheckoutQuery($queryId, true);
 
             return true;
@@ -190,14 +190,14 @@ class StarPaymentService
                 return false;
             }
 
-            // Проверка идемпотентности - платёж уже обработан
+
             if ($payment->status === 'completed') {
                 Log::info('Stars payment already completed', ['payment_id' => $paymentId]);
 
                 return true;
             }
 
-            // Обновляем платёж
+
             $payment->update([
                 'status' => 'completed',
                 'payment_data' => array_merge($payment->payment_data ?? [], [
@@ -207,7 +207,7 @@ class StarPaymentService
                 ]),
             ]);
 
-            // Зачисляем на баланс пользователя
+
             $user = $payment->user;
             $user->increment('balance', $payment->amount);
 
@@ -258,7 +258,7 @@ class StarPaymentService
             return false;
         }
 
-        // Откатываем баланс
+
         $payment->user->decrement('balance', $payment->amount);
 
         $payment->update([

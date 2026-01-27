@@ -33,7 +33,7 @@ class BankService
     {
         $bank->increment('totalBets', $bet);
 
-        // house edge сразу остаётся в банке
+
         $bank->increment(
             'default_balance',
             $bet * $bank->houseEdge

@@ -38,7 +38,7 @@ class RngSerivce
 
         $value = $min + $r * ($max - $min);
 
-        // Округляем до одного знака после запятой (шаг 0.1)
+
         return round($value, 1);
     }
 }
