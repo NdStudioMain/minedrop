@@ -3,27 +3,45 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bank;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use Inertia\Inertia;
 
 class AuthController extends Controller
 {
-    public function login(Request $r) {
-        if (!$r->has('initData')) {
-            if ($r->wantsJson()) {
+    public function login(Request $r): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        // Проверяем, является ли запрос AJAX/JSON (по заголовкам или Content-Type)
+        $isJsonRequest = $r->wantsJson()
+            || $r->ajax()
+            || $r->expectsJson()
+            || $r->header('X-Requested-With') === 'XMLHttpRequest'
+            || str_contains($r->header('Accept', ''), 'application/json');
+
+        if (! $r->has('initData')) {
+            if ($isJsonRequest) {
                 return response()->json(['success' => false, 'error' => 'No initData'], 400);
             }
+
             return redirect('https://t.me/MineDropBot');
         }
-        $data = $this->validateTelegramData($r->get('initData'));
+
+        try {
+            $data = $this->validateTelegramData($r->get('initData'));
+        } catch (\Exception $e) {
+            if ($isJsonRequest) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 403);
+            }
+
+            abort(403, $e->getMessage());
+        }
 
         $tgId = $data['user']['id'];
 
         $user = User::where('tg_id', $tgId)->first();
 
-        if (!$user) {
+        if (! $user) {
             $user = User::create([
                 'tg_id' => $tgId,
                 'name' => $data['user']['first_name'],
@@ -32,13 +50,15 @@ class AuthController extends Controller
                 'bank_id' => Bank::where('is_default', true)->first()->id,
             ]);
         }
+
         if ($user->avatar == null && isset($data['user']['photo_url'])) {
             $user->avatar = $data['user']['photo_url'];
             $user->save();
         }
+
         Auth::login($user, true);
 
-        if ($r->wantsJson()) {
+        if ($isJsonRequest) {
             return response()->json([
                 'success' => true,
                 'redirect' => route('home'),
@@ -47,7 +67,9 @@ class AuthController extends Controller
 
         return redirect()->route('home');
     }
-    public function loginRedirect() {
+
+    public function loginRedirect()
+    {
         return redirect()->route('tg.auth');
     }
 
@@ -55,7 +77,7 @@ class AuthController extends Controller
     {
         parse_str($initData, $data);
 
-        if (!isset($data['hash'])) {
+        if (! isset($data['hash'])) {
             abort(403, 'Invalid Telegram data');
         }
 
@@ -81,7 +103,7 @@ class AuthController extends Controller
             $secretKey
         );
 
-        if (!hash_equals($calculatedHash, $hash)) {
+        if (! hash_equals($calculatedHash, $hash)) {
             abort(403, 'Telegram data check failed');
         }
 
@@ -92,9 +114,8 @@ class AuthController extends Controller
         return $data;
     }
 
-
-
-    public function telegramAuth(Request $r) {
+    public function telegramAuth(Request $r)
+    {
         return Inertia::render('telegramAuth');
     }
 }
