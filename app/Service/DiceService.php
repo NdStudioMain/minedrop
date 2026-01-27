@@ -60,7 +60,7 @@ class DiceService
             'roll' => $roll,
             'isWin' => $isWin,
             'winAmount' => $isWin ? round($winAmount, 2) : 0,
-            'multiplier' => round($multiplier, 4), // Возвращаем множитель всегда, с точностью до 4 знаков
+            'multiplier' => round($multiplier, 4),
             'newBalance' => round($user->fresh()->balance, 2),
         ];
     }

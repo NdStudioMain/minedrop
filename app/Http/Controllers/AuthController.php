@@ -12,13 +12,32 @@ use Inertia\Inertia;
 class AuthController extends Controller
 {
     public function login(Request $r) {
-        if (!$r->has('initData')) {
+        // Получаем initData из JSON или query параметров
+        $initData = $r->input('initData') ?? $r->get('initData');
+        
+        if (!$initData) {
+            Log::error('No initData in request', [
+                'request_data' => $r->all(),
+                'content_type' => $r->header('Content-Type'),
+            ]);
             if ($r->wantsJson()) {
                 return response()->json(['success' => false, 'error' => 'No initData'], 400);
             }
             return redirect('https://t.me/MineDropBot');
         }
-        $data = $this->validateTelegramData($r->get('initData'));
+        
+        try {
+            $data = $this->validateTelegramData($initData);
+        } catch (\Exception $e) {
+            Log::error('Telegram validation error', [
+                'error' => $e->getMessage(),
+                'init_data_length' => strlen($initData),
+            ]);
+            if ($r->wantsJson()) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 403);
+            }
+            throw $e;
+        }
 
         $tgId = $data['user']['id'];
 
@@ -57,6 +76,10 @@ class AuthController extends Controller
         parse_str($initData, $data);
 
         if (!isset($data['hash'])) {
+            Log::error('No hash in Telegram data', [
+                'parsed_keys' => array_keys($data),
+                'init_data_preview' => substr($initData, 0, 100),
+            ]);
             abort(403, 'Invalid Telegram data');
         }
 
@@ -72,9 +95,15 @@ class AuthController extends Controller
             ->map(fn ($value, $key) => "{$key}={$value}")
             ->implode("\n");
 
+        $botToken = config('services.telegram.token');
+        if (!$botToken) {
+            Log::error('Telegram bot token not configured');
+            abort(500, 'Telegram bot token not configured');
+        }
+
         $secretKey = hash_hmac(
             'sha256',
-            config('services.telegram.token'),
+            $botToken,
             'WebAppData',
             true
         );
@@ -91,6 +120,8 @@ class AuthController extends Controller
                 'calculated_hash' => $calculatedHash,
                 'received_hash' => $hash,
                 'data_keys' => array_keys($data),
+                'bot_token_length' => strlen($botToken),
+                'bot_token_preview' => substr($botToken, 0, 10) . '...',
             ]);
             abort(403, 'Telegram data check failed');
         }
