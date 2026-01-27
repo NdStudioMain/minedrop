@@ -23,7 +23,7 @@ class MinedropApiService
 
     public function createSession()
     {
-        $response = Http::timeout(30)->withHeaders([
+        $response = Http::timeout(360)->withHeaders([
             'x-api-key' => $this->apiKey,
             'Content-Type' => 'application/json',
         ])->get($this->apiUrl . '/session/create', [
