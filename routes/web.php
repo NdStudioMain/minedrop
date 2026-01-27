@@ -35,19 +35,19 @@ Route::middleware('auth')->group(function () {
 
 // Авторизация с rate limiting
 Route::middleware('throttle:auth')->group(function () {
-    Route::get('login', [AuthController::class, 'loginRedirect'])->name('login');
-    Route::get('tg/auth', [AuthController::class, 'telegramAuth'])->name('tg.auth');
-    Route::post('tg/auth/login', [AuthController::class, 'login'])->name('tg.auth.login');
+Route::get('login', [AuthController::class, 'loginRedirect'])->name('login');
+Route::get('tg/auth', [AuthController::class, 'telegramAuth'])->name('tg.auth');
+Route::post('tg/auth/login', [AuthController::class, 'login'])->name('tg.auth.login');
 });
 
 Route::middleware('auth')->group(function () {
     // Бонусы с rate limiting
     Route::middleware('throttle:bonus')->group(function () {
-        Route::post('bonus/daily', [BonusController::class, 'bonusDaily'])->name('bonus.daily');
-        Route::post('activate/promo', [BonusController::class, 'activatePromo'])->name('bonus.promo');
-        Route::post('check/subscriptions', [BonusController::class, 'checkSubscriptions'])->name('bonus.check-subscriptions');
-        Route::post('referral/claim', [ReferralController::class, 'claim'])->name('referral.claim');
-    });
+    Route::post('bonus/daily', [BonusController::class, 'bonusDaily'])->name('bonus.daily');
+    Route::post('activate/promo', [BonusController::class, 'activatePromo'])->name('bonus.promo');
+    Route::post('check/subscriptions', [BonusController::class, 'checkSubscriptions'])->name('bonus.check-subscriptions');
+    Route::post('referral/claim', [ReferralController::class, 'claim'])->name('referral.claim');
+});
 
     // Платежи с rate limiting
     Route::middleware('throttle:payments')->group(function () {

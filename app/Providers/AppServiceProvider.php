@@ -90,9 +90,9 @@ class AppServiceProvider extends ServiceProvider
                 });
         });
 
-        // Slots/Wallet (minedrop) - 2 запроса в секунду
+        // Slots/Wallet - для внешних интеграций (30 в минуту)
         RateLimiter::for('wallet', function (Request $request) {
-            return Limit::perSecond(2)->by($request->ip())
+            return Limit::perMinute(30)->by($request->ip())
                 ->response(function () {
                     return response()->json([
                         'success' => false,

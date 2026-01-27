@@ -86,29 +86,29 @@ onMounted(() => {
                 </div>
                 <div class="h-6 w-6 rounded-full bg-[#333333]" />
             </div>
-        </div>
+                </div>
 
         <!-- Пустой список -->
-        <div
+                    <div
             v-else-if="transactions.length === 0"
             class="flex flex-col items-center justify-center py-8 text-center"
-        >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
                 class="size-12 text-[#333333] mb-2"
-                fill="none"
+                            fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-            >
-                <path
+                        >
+                            <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    stroke-width="2"
+                                stroke-width="2"
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-            </svg>
+                            />
+                        </svg>
             <span class="text-[10px] text-[#4E4E4E]">Транзакций пока нет</span>
-        </div>
+            </div>
 
         <!-- Список транзакций -->
         <div v-else class="flex flex-col gap-1.5">
@@ -139,7 +139,7 @@ onMounted(() => {
                             :viewBox="statusIcons[tx.status]?.viewBox || statusIcons.pending.viewBox"
                             fill="none"
                             v-html="statusIcons[tx.status]?.icon || statusIcons.pending.icon"
-                        />
+                            />
                     </div>
                 </div>
             </div>
