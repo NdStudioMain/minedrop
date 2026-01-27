@@ -26,10 +26,9 @@ class DiceService
             throw new \Exception('Bank not found');
         }
 
-        // 1. Calculate potential win
-        // Multiplier: 95 / chance (5% house edge)
-        $houseEdge = $bank->houseEdge ?? 0.05;
-        $multiplier = (100 - ($houseEdge * 100)) / $chance;
+
+        // Формула: payout = 99 / chance (house edge 1%)
+        $multiplier = 99.0 / $chance;
 
         $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, $bet);
         $multiplier = min($multiplier, $maxMultiplier);
@@ -48,7 +47,6 @@ class DiceService
             $isWin = $roll < $chance;
         }
 
-        // 4. Update bank and user
         $this->bankService->applyBet($bank, $bet);
 
         if ($isWin) {
@@ -62,7 +60,7 @@ class DiceService
             'roll' => $roll,
             'isWin' => $isWin,
             'winAmount' => $isWin ? round($winAmount, 2) : 0,
-            'multiplier' => $isWin ? round($multiplier, 2) : 0,
+            'multiplier' => round($multiplier, 4), // Возвращаем множитель всегда, с точностью до 4 знаков
             'newBalance' => round($user->fresh()->balance, 2),
         ];
     }

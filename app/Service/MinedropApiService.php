@@ -48,17 +48,13 @@ class MinedropApiService
 
         // Проверка для BONUS режима
         if ($mode == 'BONUS') {
-            // Минимальная стоимость бонуса: 1000 RUB
             $minBonusCost = 1000.0;
-            // Стоимость бонуса = ставка * 100
             $bonusCost = $bet * 100;
 
-            // Проверка минимальной стоимости
             if ($bonusCost < $minBonusCost) {
                 throw new \Exception("Минимальная стоимость бонуса: {$minBonusCost} RUB. При ставке {$bet} RUB стоимость бонуса: {$bonusCost} RUB");
             }
 
-            // Проверка баланса
             if ($this->user->balance < $bonusCost) {
                 throw new \Exception("Недостаточно средств для покупки бонуса. Требуется: {$bonusCost} RUB, доступно: {$this->user->balance} RUB");
             }

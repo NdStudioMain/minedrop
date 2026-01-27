@@ -18,7 +18,8 @@ const result = ref(null);
 const isRolling = ref(false);
 
 const multiplier = computed(() => {
-    return (99 / chance.value).toFixed(2);
+    // Формула: payout = 99 / chance (house edge 1%)
+    return (99.0 / chance.value).toFixed(4);
 });
 
 const isDragging = ref(false);
