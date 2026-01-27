@@ -33,39 +33,33 @@ Route::middleware('auth')->group(function () {
     })->name('partners');
 });
 
-// Авторизация без rate limiting (нужна для нормальной работы в Telegram Web App)
 Route::get('login', [AuthController::class, 'loginRedirect'])->name('login');
 Route::get('tg/auth', [AuthController::class, 'telegramAuth'])->name('tg.auth');
 Route::post('tg/auth/login', [AuthController::class, 'login'])->name('tg.auth.login');
 
 Route::middleware('auth')->group(function () {
-    // Бонусы с rate limiting
-    Route::middleware('throttle:bonus')->group(function () {
-        Route::post('bonus/daily', [BonusController::class, 'bonusDaily'])->name('bonus.daily');
-        Route::post('activate/promo', [BonusController::class, 'activatePromo'])->name('bonus.promo');
-        Route::post('check/subscriptions', [BonusController::class, 'checkSubscriptions'])->name('bonus.check-subscriptions');
-        Route::post('referral/claim', [ReferralController::class, 'claim'])->name('referral.claim');
+    Route::post('bonus/daily', [BonusController::class, 'bonusDaily'])->name('bonus.daily');
+    Route::post('activate/promo', [BonusController::class, 'activatePromo'])->name('bonus.promo');
+    Route::post('check/subscriptions', [BonusController::class, 'checkSubscriptions'])->name('bonus.check-subscriptions');
+    Route::post('referral/claim', [ReferralController::class, 'claim'])->name('referral.claim');
+
+    // Единый эндпоинт для создания платежа
+    Route::post('/api/payment', [PaymentController::class, 'createPayment'])->name('payment.create');
+
+    // CryptoPay роуты
+    Route::prefix('api/crypto-pay')->group(function () {
+        Route::get('/status/{paymentId}', [CryptoPayController::class, 'getStatus'])->name('crypto-pay.status');
+        Route::get('/payments', [CryptoPayController::class, 'getPayments'])->name('crypto-pay.payments');
     });
 
-    // Платежи с rate limiting
-    Route::middleware('throttle:payments')->group(function () {
-        Route::post('/api/payment', [PaymentController::class, 'createPayment'])->name('payment.create');
-
-        // CryptoPay роуты
-        Route::prefix('api/crypto-pay')->group(function () {
-            Route::get('/status/{paymentId}', [CryptoPayController::class, 'getStatus'])->name('crypto-pay.status');
-            Route::get('/payments', [CryptoPayController::class, 'getPayments'])->name('crypto-pay.payments');
-        });
-
-        // Cryptura роуты
-        Route::prefix('api/cryptura')->group(function () {
-            Route::get('/status/{paymentId}', [CrypturaController::class, 'getStatus'])->name('cryptura.status');
-            Route::get('/payments', [CrypturaController::class, 'getPayments'])->name('cryptura.payments');
-        });
+    // Cryptura роуты
+    Route::prefix('api/cryptura')->group(function () {
+        Route::get('/status/{paymentId}', [CrypturaController::class, 'getStatus'])->name('cryptura.status');
+        Route::get('/payments', [CrypturaController::class, 'getPayments'])->name('cryptura.payments');
     });
 
-    // Выводы с rate limiting
-    Route::middleware('throttle:withdrawals')->prefix('api/withdrawal')->group(function () {
+    // Выводы
+    Route::prefix('api/withdrawal')->group(function () {
         Route::post('/', [WithdrawalController::class, 'create'])->name('withdrawal.create');
         Route::get('/', [WithdrawalController::class, 'index'])->name('withdrawal.index');
         Route::get('/{id}', [WithdrawalController::class, 'status'])->name('withdrawal.status');
