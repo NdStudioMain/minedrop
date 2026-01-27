@@ -46,16 +46,19 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/api/payment', [PaymentController::class, 'createPayment'])->name('payment.create');
 
+    // CryptoPay роуты
     Route::prefix('api/crypto-pay')->group(function () {
         Route::get('/status/{paymentId}', [CryptoPayController::class, 'getStatus'])->name('crypto-pay.status');
         Route::get('/payments', [CryptoPayController::class, 'getPayments'])->name('crypto-pay.payments');
     });
 
+    // Cryptura роуты
     Route::prefix('api/cryptura')->group(function () {
         Route::get('/status/{paymentId}', [CrypturaController::class, 'getStatus'])->name('cryptura.status');
         Route::get('/payments', [CrypturaController::class, 'getPayments'])->name('cryptura.payments');
     });
 
+    // Выводы
     Route::prefix('api/withdrawal')->group(function () {
         Route::post('/', [WithdrawalController::class, 'create'])->name('withdrawal.create');
         Route::get('/', [WithdrawalController::class, 'index'])->name('withdrawal.index');

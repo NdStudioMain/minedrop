@@ -65,7 +65,7 @@ class CrypturaService
         $paymentDetails = $data['payment_details'] ?? [];
         $innerDetails = $paymentDetails['payment_details'] ?? [];
 
-
+        // QR-ссылка для оплаты через СБП
         $qrUrl = $innerDetails['nspk_qr'] ?? $innerDetails['number'] ?? '';
 
         return Payment::create([
@@ -102,7 +102,7 @@ class CrypturaService
             return false;
         }
 
-
+        // Проверяем подпись
         if (! $this->verifyCallbackSignature($amount, $invid, $signature)) {
             Log::warning('Cryptura callback: неверная подпись', [
                 'invid' => $invid,
@@ -124,7 +124,7 @@ class CrypturaService
             return false;
         }
 
-
+        // Проверяем статус
         if ($status === 'success' || $status === 'paid' || $status === 'completed') {
             return $this->completePayment($payment);
         }
@@ -150,10 +150,10 @@ class CrypturaService
         return DB::transaction(function () use ($payment) {
             $user = $payment->user;
 
-
+            // Зачисляем баланс
             $user->increment('balance', $payment->amount);
 
-
+            // Обновляем статус платежа
             $payment->update(['status' => 'completed']);
 
             Log::info('Cryptura: платёж успешно обработан', [

@@ -53,7 +53,7 @@ class CryptoPayController extends Controller
         $signature = $request->header('Crypto-Pay-Api-Signature', '');
         $body = $request->getContent();
 
-
+        // Верификация подписи
         if (! $this->cryptoPayService->verifyWebhookSignature($body, $signature)) {
             Log::warning('CryptoPay webhook: неверная подпись', [
                 'signature' => $signature,
@@ -68,7 +68,7 @@ class CryptoPayController extends Controller
         $data = $request->all();
         $updateType = $data['update_type'] ?? null;
 
-
+        // Обрабатываем только события оплаты
         if ($updateType !== 'invoice_paid') {
             return response()->json([
                 'success' => true,
@@ -104,7 +104,7 @@ class CryptoPayController extends Controller
             ], 404);
         }
 
-
+        // Если статус pending, проверяем актуальный статус через API
         if ($payment->status === 'pending') {
             $apiStatus = $this->cryptoPayService->checkInvoiceStatus($payment);
 
@@ -148,7 +148,7 @@ class CryptoPayController extends Controller
      */
     public function getPaymentMethods(): JsonResponse
     {
-
+        // Получаем активные методы оплаты из базы
         $methods = PaymentSystem::query()
             ->where('is_active', true)
             ->get()
@@ -158,7 +158,7 @@ class CryptoPayController extends Controller
                 'icon' => $system->icon,
             ]);
 
-
+        // Дефолтные курсы (примерные) на случай если API недоступен
         $defaultRates = [
             'TON' => 450.0,
             'USDT' => 97.0,
@@ -170,12 +170,12 @@ class CryptoPayController extends Controller
             'USDC' => 97.0,
         ];
 
-
+        // Получаем курсы криптовалют к рублю (кэшируем на 5 минут)
         $rates = Cache::remember('crypto_rates_rub', 300, function () use ($defaultRates) {
             try {
                 $apiRates = $this->cryptoPayService->getCryptoRatesToRub();
 
-
+                // Если получили пустой массив — используем дефолтные
                 return ! empty($apiRates) ? $apiRates : $defaultRates;
             } catch (\Exception $e) {
                 Log::error('Ошибка получения курсов CryptoPay: '.$e->getMessage());
@@ -184,7 +184,7 @@ class CryptoPayController extends Controller
             }
         });
 
-
+        // Формируем список валют с курсами
         $currencies = [];
         $supportedCrypto = ['TON', 'USDT', 'BTC', 'ETH', 'LTC', 'BNB', 'TRX', 'USDC'];
 

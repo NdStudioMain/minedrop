@@ -70,7 +70,7 @@ class CryptoPayService
 
         $result = $this->api->createInvoice($invoice);
 
-
+        // API возвращает объект Invoice со snake_case свойствами
         $paymentUrl = $result->bot_invoice_url ?? $result->pay_url ?? '';
         $invoiceId = (string) $result->invoice_id;
 
@@ -126,10 +126,10 @@ class CryptoPayService
         return DB::transaction(function () use ($payment) {
             $user = $payment->user;
 
-
+            // Зачисляем баланс
             $user->increment('balance', $payment->amount);
 
-
+            // Обновляем статус платежа
             $payment->update(['status' => 'completed']);
 
             Log::info('CryptoPay: платёж успешно обработан', [
@@ -156,7 +156,7 @@ class CryptoPayService
             return null;
         }
 
-
+        // API возвращает массив объектов Invoice
         $invoice = $invoices[0];
 
         return $invoice->status ?? null;
@@ -185,13 +185,13 @@ class CryptoPayService
      */
     public function getCryptoRatesToRub(): array
     {
-
+        // Сначала пробуем CoinGecko API (бесплатный, без токена)
         $coinGeckoRates = $this->getRatesFromCoinGecko();
         if (! empty($coinGeckoRates)) {
             return $coinGeckoRates;
         }
 
-
+        // Фоллбэк на CryptoPay API
         return $this->getRatesFromCryptoPay();
     }
 
@@ -200,7 +200,7 @@ class CryptoPayService
      */
     private function getRatesFromCoinGecko(): array
     {
-
+        // Маппинг наших кодов на CoinGecko IDs
         $coinIds = [
             'TON' => 'the-open-network',
             'USDT' => 'tether',
@@ -213,7 +213,7 @@ class CryptoPayService
         ];
 
         $ids = implode(',', array_values($coinIds));
-        $url = "https:
+        $url = "https://api.coingecko.com/api/v3/simple/price?ids={$ids}&vs_currencies=rub";
 
         try {
             $response = Http::timeout(10)->get($url);
@@ -258,7 +258,7 @@ class CryptoPayService
         foreach ($supportedCrypto as $crypto) {
             $cryptoToUsd = null;
             foreach ($rates as $rate) {
-
+                // API возвращает массивы
                 if ($rate['source'] === $crypto && $rate['target'] === 'USD' && $rate['is_valid']) {
                     $cryptoToUsd = (float) $rate['rate'];
                     break;
@@ -292,7 +292,7 @@ class CryptoPayService
             return null;
         }
 
-
+        // amountRub / rate = crypto amount
         return $amountRub / $rates[$currency];
     }
 

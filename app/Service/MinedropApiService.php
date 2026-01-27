@@ -43,10 +43,10 @@ class MinedropApiService
         $bank = $this->user->bank;
         $bankService = new \App\Service\BankService();
         $rngService = new \App\Service\RngSerivce();
-        $bet = $request->amount / 1000000;
+        $bet = $request->amount / 1000000; // Конвертация из микрорублей в рубли
         $mode = $request->mode;
 
-
+        // Проверка для BONUS режима
         if ($mode == 'BONUS') {
             $minBonusCost = 1000.0;
             $bonusCost = $bet * 100;
@@ -82,7 +82,7 @@ class MinedropApiService
 
         if ($response->successful()) {
             return \DB::transaction(function () use ($response, $request, $bank, $bankService, $bet, $mode) {
-
+                // Обновляем пользователя с блокировкой
                 $this->user->refresh();
                 $this->user->lockForUpdate();
 
@@ -90,7 +90,7 @@ class MinedropApiService
                 $multiplier = $result['round']['payoutMultiplier'];
                 $win = $multiplier * $bet;
 
-
+                // Определяем стоимость игры
                 if ($mode == 'BONUS') {
                     $gameCost = $bet * 100;
                 } elseif ($mode == "ANTE") {
@@ -99,12 +99,12 @@ class MinedropApiService
                     $gameCost = $bet;
                 }
 
-
+                // Проверяем баланс еще раз (на случай параллельных запросов)
                 if ($this->user->balance < $gameCost) {
                     throw new \Exception("Недостаточно средств. Требуется: {$gameCost} RUB, доступно: {$this->user->balance} RUB");
                 }
 
-
+                // Применяем ставку к банку
                 if ($mode == 'BONUS') {
                     $bankService->applyBet($bank, $bet * 100);
                 } elseif ($mode == "ANTE") {
@@ -113,10 +113,10 @@ class MinedropApiService
                     $bankService->applyBet($bank, $bet);
                 }
 
-
+                // Применяем выигрыш к банку
                 $bankService->applyWin($bank, $win);
 
-
+                // Обновляем баланс пользователя
                 $this->user->balance -= $gameCost;
                 $this->user->balance += $win;
                 $this->user->save();

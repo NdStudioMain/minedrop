@@ -26,7 +26,7 @@ class PaymentController extends Controller
         $request->validate([
             'method' => 'required|string|in:crypto_pay,nspk,stars',
             'amount' => 'required|numeric|min:50',
-            'currency' => 'nullable|string',
+            'currency' => 'nullable|string', // Только для crypto_pay
         ]);
 
         $method = $request->input('method');
@@ -41,7 +41,7 @@ class PaymentController extends Controller
 
         try {
             if ($method === 'stars') {
-
+                // Telegram Stars — минимум 50₽
                 if ($amount > 500000) {
                     return response()->json([
                         'success' => false,
@@ -60,7 +60,7 @@ class PaymentController extends Controller
                     ],
                 ]);
             } elseif ($method === 'nspk') {
-
+                // Лимит для НСПК — минимум 2000₽
                 if ($amount < 2000) {
                     return response()->json([
                         'success' => false,
@@ -77,7 +77,7 @@ class PaymentController extends Controller
 
                 $payment = $this->crypturaService->createPaymentWindow($user, $amount);
             } else {
-
+                // CryptoPay — минимум 2000₽
                 if ($amount < 2000) {
                     return response()->json([
                         'success' => false,

@@ -24,12 +24,12 @@ class WithdrawalService
         string $method = 'sbp',
         ?string $bankName = null
     ): Withdrawal {
-
+        // Проверка баланса
         if ($user->balance < $amount) {
             throw new \Exception('Недостаточно средств на балансе');
         }
 
-
+        // Проверка лимитов
         if ($amount < self::MIN_AMOUNT) {
             throw new \Exception('Минимальная сумма вывода — '.number_format(self::MIN_AMOUNT, 0, '', ' ').' ₽');
         }
@@ -38,7 +38,7 @@ class WithdrawalService
             throw new \Exception('Максимальная сумма вывода — '.number_format(self::MAX_AMOUNT, 0, '', ' ').' ₽');
         }
 
-
+        // Проверка на незавершённые заявки
         $pendingCount = Withdrawal::query()
             ->where('user_id', $user->id)
             ->whereIn('status', ['pending', 'processing'])
@@ -49,7 +49,7 @@ class WithdrawalService
         }
 
         return DB::transaction(function () use ($user, $amount, $cardNumber, $method, $bankName) {
-
+            // Списываем с баланса сразу
             $user->decrement('balance', $amount);
 
             $withdrawal = Withdrawal::create([
@@ -104,7 +104,7 @@ class WithdrawalService
         }
 
         return DB::transaction(function () use ($withdrawal, $admin, $comment) {
-
+            // Возвращаем деньги на баланс
             $withdrawal->user->increment('balance', $withdrawal->amount);
 
             $withdrawal->update([

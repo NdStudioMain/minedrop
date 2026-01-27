@@ -5,6 +5,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import VSelect from 'vue-select';
 import { onClickOutside } from '@vueuse/core';
 
+// Данные загружаемые с бэкенда
 const methods = ref([]);
 const currencies = ref([]);
 const starsInfo = ref(null);
@@ -222,6 +223,7 @@ const onCurrencySelectOpen = async () => {
     await nextTick();
     animateDropdown(currencySelect);
 
+    // Устанавливаем обработчик клика вне
     if (stopCurrencyClickOutside) stopCurrencyClickOutside();
     stopCurrencyClickOutside = onClickOutside(currencySelectWrapper, () => {
         closeCurrencySelect();
