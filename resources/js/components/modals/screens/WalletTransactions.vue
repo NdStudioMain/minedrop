@@ -119,7 +119,11 @@ onMounted(() => {
             >
                 <div class="gap-2.5 flex items-center">
                     <div class="flex items-center justify-between text-[8px] text-white gap-1">
-                        <img src="/assets/img/cryptobot.png" class="size-6 rounded-full" alt="" />
+                        <img
+                            :src="tx.payment_system_icon || '/assets/img/cryptobot.png'"
+                            class="size-6 rounded-full"
+                            alt=""
+                        />
                         #{{ tx.id }}
                     </div>
                     <span class="text-[8px] text-white">{{ formatAmount(tx.amount) }}</span>

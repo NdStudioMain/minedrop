@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Models\Games;
 use App\Models\User;
-use App\Models\Bank;
 
 class DiceService
 {
@@ -20,12 +19,11 @@ class DiceService
         }
 
         $game = Games::where('id_game', 'dice')->first();
-        $bank = $game ? $game->bank : Bank::first();
+        $bank = $user->bank ? $user->bank : $game->bank;
 
-        if (!$bank) {
+        if (! $bank) {
             throw new \Exception('Bank not found');
         }
-
 
         // Формула: payout = 99 / chance (house edge 1%)
         $multiplier = 99.0 / $chance;
@@ -65,4 +63,3 @@ class DiceService
         ];
     }
 }
-

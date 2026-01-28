@@ -27,6 +27,7 @@ const slides = [
         element: 'assets/img/baner-1-element.png',
         elementClass: 'absolute top-1/2 right-5 w-[124px] -translate-y-1/2',
         buttonText: 'Подписаться',
+        buttonLink: 'https://t.me/minedrop95',
     },
     {
         key: 'mode',
@@ -37,6 +38,7 @@ const slides = [
         element: 'assets/img/minedrop.png',
         elementClass: 'absolute top-1/2 right-5 w-[124px] -translate-y-1/2',
         buttonText: 'Играть',
+        buttonLink: 'https://t.me/minedrop95',
     },
 ];
 

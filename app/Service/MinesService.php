@@ -35,7 +35,7 @@ class MinesService
         $user->decrement('balance', $bet);
 
         $game = Games::where('id_game', 'mines')->first();
-        $bank = $game ? $game->bank : Bank::first();
+        $bank = $user->bank ? $user->bank : $game->bank;
         $this->bankService->applyBet($bank, $bet);
 
         // Create game record in database
@@ -96,7 +96,7 @@ class MinesService
 
         // Check bank limit
         $game = Games::where('id_game', 'mines')->first();
-        $bank = $game ? $game->bank : Bank::first();
+        $bank = $user->bank ? $user->bank : $game->bank;
         $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, (float) $minesGame->bet);
 
         if ($multiplier > $maxMultiplier) {
@@ -129,7 +129,7 @@ class MinesService
         }
 
         $game = Games::where('id_game', 'mines')->first();
-        $bank = $game ? $game->bank : Bank::first();
+        $bank = $user->bank ? $user->bank : $game->bank;
 
         $multiplier = $minesGame->step > 0
             ? $this->calculateMultiplier($minesGame->mine_count, $minesGame->step)
@@ -162,7 +162,7 @@ class MinesService
             $multiplier = $this->calculateMultiplier($minesGame->mine_count, $minesGame->step);
 
             $game = Games::where('id_game', 'mines')->first();
-            $bank = $game ? $game->bank : Bank::first();
+            $bank = $user->bank ? $user->bank : $game->bank;
             $maxMultiplier = $this->bankService->getMaxAllowedMultiplier($bank, (float) $minesGame->bet);
             $multiplier = min($multiplier, $maxMultiplier);
 

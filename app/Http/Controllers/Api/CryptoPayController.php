@@ -226,6 +226,8 @@ class CryptoPayController extends Controller
                 'status' => $payment->status,
                 'amount' => $payment->amount,
                 'payment_system' => $payment->paymentSystem?->name,
+                'payment_system_code' => $payment->paymentSystem?->code,
+                'payment_system_icon' => $payment->paymentSystem?->icon,
                 'currency' => $payment->payment_data['currency'] ?? null,
                 'crypto_amount' => $payment->payment_data['crypto_amount'] ?? null,
                 'created_at' => $payment->created_at,
