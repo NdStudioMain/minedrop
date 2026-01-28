@@ -47,11 +47,13 @@ class DiceService
 
         $this->bankService->applyBet($bank, $bet);
 
+        // Сначала списываем ставку
+        $user->decrement('balance', $bet);
+
         if ($isWin) {
+            // При выигрыше начисляем выигрыш (ставка уже списана)
             $this->bankService->applyWin($bank, $winAmount);
-            $user->increment('balance', $winAmount + $bet);
-        } else {
-            $user->decrement('balance', $bet);
+            $user->increment('balance', $winAmount);
         }
 
         return [
