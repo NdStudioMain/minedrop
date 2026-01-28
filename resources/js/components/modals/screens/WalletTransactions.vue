@@ -73,7 +73,7 @@ onMounted(() => {
 <template>
     <div class="flex flex-col gap-8">
         <!-- Загрузка -->
-        <div v-if="isLoading" class="flex flex-col gap-1.5">
+        <div v-if="isLoading" class="flex flex-col max-h-[400px] overflow-y-auto gap-1.5">
             <div
                 v-for="i in 3"
                 :key="i"
