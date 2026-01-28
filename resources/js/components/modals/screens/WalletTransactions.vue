@@ -111,7 +111,7 @@ onMounted(() => {
             </div>
 
         <!-- Список транзакций -->
-        <div v-else class="flex flex-col gap-1.5">
+        <div v-else class="flex flex-col max-h-[400px] overflow-y-auto gap-1.5">
             <div
                 v-for="tx in transactions"
                 :key="tx.id"
