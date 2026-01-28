@@ -115,7 +115,7 @@ onMounted(() => {
             <div
                 v-for="tx in transactions"
                 :key="tx.id"
-                class="relative flex items-center justify-between rounded-full bg-[#272727] p-1.5 pr-2.5"
+                class="relative flex max-h-[400px] overflow-y-auto items-center justify-between rounded-full bg-[#272727] p-1.5 pr-2.5"
             >
                 <div class="gap-2.5 flex items-center">
                     <div class="flex items-center justify-between text-[8px] text-white gap-1">

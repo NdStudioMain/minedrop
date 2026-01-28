@@ -132,7 +132,7 @@ onBeforeUnmount(() => {
                             pauseOnMouseEnter: false,
                         }" @swiper="onSwiper" @slide-change="onSlideChange" @autoplay-time-left="onAutoplayTimeLeft" data-animate>
                             <SwiperSlide v-for="s in slides" :key="s.key" class="w-full">
-                                <div class="relative flex h-44 flex-col justify-between overflow-hidden rounded-[10px] p-5">
+                                <a :href="s.buttonLink" rel="noopener noreferrer" class="relative flex h-44 flex-col justify-between overflow-hidden rounded-[10px] p-5">
                                     <img :src="s.bg" class="absolute top-0 left-0 z-0 h-full w-full object-cover" alt="" />
                                     <img :src="s.element" :class="s.elementClass" alt="" />
                                     <div class="relative z-10 flex flex-col gap-2.5">
@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
                                     <button class="relative z-10 w-max cursor-pointer rounded-[10px] bg-white px-6 py-2.5 duration-300 ease-in-out hover:opacity-80">
                                         {{ s.buttonText }}
                                     </button>
-                                </div>
+                                </a>
                             </SwiperSlide>
                         </Swiper>
 
