@@ -2,10 +2,10 @@
 
 namespace App\Service;
 
-use App\Models\Games;
-use App\Models\User;
 use App\Models\Bank;
+use App\Models\Games;
 use App\Models\MinesGame;
+use App\Models\User;
 
 class MinesService
 {
@@ -65,7 +65,7 @@ class MinesService
             ->where('status', 'playing')
             ->first();
 
-        if (!$minesGame) {
+        if (! $minesGame) {
             throw new \Exception('No active game');
         }
 
@@ -124,7 +124,7 @@ class MinesService
             ->where('status', 'playing')
             ->first();
 
-        if (!$minesGame) {
+        if (! $minesGame) {
             return null;
         }
 
@@ -155,7 +155,7 @@ class MinesService
                 ->lockForUpdate()
                 ->first();
 
-            if (!$minesGame || $minesGame->step === 0) {
+            if (! $minesGame || $minesGame->step === 0) {
                 throw new \Exception('Cannot cashout');
             }
 
@@ -186,14 +186,18 @@ class MinesService
 
     private function calculateMultiplier(int $mines, int $step): float
     {
-        if ($step <= 0) return 1.0;
+        if ($step <= 0) {
+            return 1.0;
+        }
 
         $p = 1.0;
         for ($i = 0; $i < $step; $i++) {
             $p *= (25 - $mines - $i) / (25 - $i);
         }
 
-        if ($p <= 0) return 0;
+        if ($p <= 0) {
+            return 0;
+        }
 
         $multiplier = 1 / $p;
 
@@ -212,11 +216,10 @@ class MinesService
             $m = $this->calculateMultiplier($mines, $step);
             $multipliers[] = [
                 'step' => $step,
-                'multiplier' => min($m, $maxMultiplier)
+                'multiplier' => min($m, $maxMultiplier),
             ];
         }
 
         return $multipliers;
     }
 }
-

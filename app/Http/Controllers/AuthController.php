@@ -3,19 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bank;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Models\User;
 use Inertia\Inertia;
 
 class AuthController extends Controller
 {
-    public function login(Request $r) {
-        if (!$r->has('initData')) {
+    public function login(Request $r)
+    {
+        if (! $r->has('initData')) {
             if ($r->wantsJson()) {
                 return response()->json(['success' => false, 'error' => 'No initData'], 400);
             }
+
             return redirect('https://t.me/MineDropBot');
         }
         $data = $this->validateTelegramData($r->get('initData'));
@@ -24,7 +26,7 @@ class AuthController extends Controller
 
         $user = User::where('tg_id', $tgId)->first();
 
-        if (!$user) {
+        if (! $user) {
             $user = User::create([
                 'tg_id' => $tgId,
                 'name' => $data['user']['first_name'],
@@ -48,7 +50,9 @@ class AuthController extends Controller
 
         return redirect()->route('home');
     }
-    public function loginRedirect() {
+
+    public function loginRedirect()
+    {
         return redirect()->route('tg.auth');
     }
 
@@ -64,7 +68,7 @@ class AuthController extends Controller
         // Используем parse_str для парсинга (он автоматически декодирует значения)
         parse_str($initData, $data);
 
-        if (!isset($data['hash'])) {
+        if (! isset($data['hash'])) {
             Log::error('Hash not found in initData', [
                 'initData_preview' => substr($initData, 0, 200),
                 'parsed_keys' => array_keys($data),
@@ -75,15 +79,8 @@ class AuthController extends Controller
         $hash = $data['hash'];
         unset($data['hash']);
 
-        // Удаляем signature, если есть (он не участвует в проверке подписи hash)
-        unset($data['signature']);
-
-        // Сортируем по ключам
         ksort($data);
 
-        // Создаём data_check_string из декодированных значений
-        // Согласно документации Telegram, значения должны быть декодированы
-        // user уже декодирован parse_str из URL-encoded JSON в строку
         $dataCheckString = collect($data)
             ->map(fn ($value, $key) => "{$key}={$value}")
             ->implode("\n");
@@ -112,22 +109,18 @@ class AuthController extends Controller
 
         Log::info('Telegram validation attempt', [
             'init_data_length' => strlen($initData),
-            'init_data_preview' => substr($initData, 0, 200) . '...',
-            'data_check_string_preview' => substr($dataCheckString, 0, 200) . '...',
+            'init_data_preview' => substr($initData, 0, 200).'...',
+            'data_check_string_preview' => substr($dataCheckString, 0, 200).'...',
             'data_check_string_length' => strlen($dataCheckString),
             'calculated_hash' => $calculatedHash,
             'received_hash' => $hash,
             'hashes_match' => hash_equals($calculatedHash, $hash),
             'data_keys' => array_keys($data),
             'bot_token_length' => strlen($botToken),
-            'bot_token_preview' => substr($botToken, 0, 15) . '...' . substr($botToken, -5),
+            'bot_token_preview' => substr($botToken, 0, 15).'...'.substr($botToken, -5),
         ]);
 
-        // ВРЕМЕННО: пропускаем валидацию в local/dev режиме для отладки
-        // TODO: Убедиться, что токен бота соответствует боту, через который открывается WebApp
-        $skipValidation = config('app.debug') && in_array(config('app.env'), ['local', 'dev']);
-
-        if (!$skipValidation && !hash_equals($calculatedHash, $hash)) {
+        if (! hash_equals($calculatedHash, $hash)) {
             Log::error('Telegram validation failed - hashes do not match', [
                 'calculated_hash' => $calculatedHash,
                 'received_hash' => $hash,
@@ -137,13 +130,6 @@ class AuthController extends Controller
             abort(403, 'Telegram data check failed');
         }
 
-        if ($skipValidation) {
-            Log::warning('Telegram validation skipped in dev mode', [
-                'calculated_hash' => $calculatedHash,
-                'received_hash' => $hash,
-            ]);
-        }
-
         if (isset($data['user']) && is_string($data['user'])) {
             $data['user'] = json_decode($data['user'], true);
         }
@@ -151,9 +137,8 @@ class AuthController extends Controller
         return $data;
     }
 
-
-
-    public function telegramAuth(Request $r) {
+    public function telegramAuth(Request $r)
+    {
         return Inertia::render('telegramAuth');
     }
 }
