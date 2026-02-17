@@ -12,6 +12,7 @@ class PaymentSystemSeeder extends Seeder
      */
     public function run(): void
     {
+        PaymentSystem::truncate();
         $systems = [
             [
                 'code' => 'stars',
