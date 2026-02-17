@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\CryptoPayController;
-use App\Http\Controllers\Api\CrypturaController;
+use App\Http\Controllers\Api\P2ParadiseController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\WithdrawalController;
 use App\Http\Controllers\AuthController;
@@ -43,7 +43,6 @@ Route::middleware('auth')->group(function () {
     Route::post('check/subscriptions', [BonusController::class, 'checkSubscriptions'])->name('bonus.check-subscriptions');
     Route::post('referral/claim', [ReferralController::class, 'claim'])->name('referral.claim');
 
-
     Route::post('/api/payment', [PaymentController::class, 'createPayment'])->name('payment.create');
 
     // CryptoPay роуты
@@ -52,10 +51,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/payments', [CryptoPayController::class, 'getPayments'])->name('crypto-pay.payments');
     });
 
-    // Cryptura роуты
-    Route::prefix('api/cryptura')->group(function () {
-        Route::get('/status/{paymentId}', [CrypturaController::class, 'getStatus'])->name('cryptura.status');
-        Route::get('/payments', [CrypturaController::class, 'getPayments'])->name('cryptura.payments');
+    // P2Paradise (НСПК / СБП) роуты
+    Route::prefix('api/p2paradise')->group(function () {
+        Route::get('/status/{paymentId}', [P2ParadiseController::class, 'getStatus'])->name('p2paradise.status');
+        Route::get('/payments', [P2ParadiseController::class, 'getPayments'])->name('p2paradise.payments');
     });
 
     // Выводы

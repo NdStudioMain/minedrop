@@ -48,10 +48,10 @@ return [
         'is_testnet' => env('CRYPTO_PAY_TESTNET', true),
     ],
 
-    'cryptura' => [
-        'api_url' => env('CRYPTURA_API_URL', 'https://cryptura.space'),
-        'api_key' => env('CRYPTURA_API_KEY'),
-        'username' => env('CRYPTURA_USERNAME'),
+    'p2paradise' => [
+        'api_url' => env('P2PARADISE_API_URL', 'https://p2paradise.net'),
+        'merchant_id' => env('P2PARADISE_MERCHANT_ID'),
+        'merchant_secret_key' => env('P2PARADISE_MERCHANT_SECRET_KEY'),
     ],
 
 ];

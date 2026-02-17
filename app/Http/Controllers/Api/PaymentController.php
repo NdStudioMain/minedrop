@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Service\CryptoPayService;
-use App\Service\CrypturaService;
+use App\Service\P2ParadiseService;
 use App\Service\StarPaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +14,7 @@ class PaymentController extends Controller
 {
     public function __construct(
         private CryptoPayService $cryptoPayService,
-        private CrypturaService $crypturaService,
+        private P2ParadiseService $p2paradiseService,
         private StarPaymentService $starPaymentService
     ) {}
 
@@ -75,7 +75,9 @@ class PaymentController extends Controller
                     ], 422);
                 }
 
-                $payment = $this->crypturaService->createPaymentWindow($user, $amount);
+                $payment = $this->p2paradiseService->createPayment($user, $amount, [
+                    'ip' => $request->ip(),
+                ]);
             } else {
                 // CryptoPay — минимум 2000₽
                 if ($amount < 2000) {
